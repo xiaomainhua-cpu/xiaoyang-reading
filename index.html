@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>小杨の阅读冒险王 · 闯关地图</title>
+<style>
+  :root{
+    --bg:#e9f4ff; --panel:#ffffff; --panel2:#f1f7ff;
+    --gold:#ffb300; --gold2:#ff8a00; --gold-txt:#e08200; --cyan:#0fae9b; --cyan2:#13c7b3;
+    --pink:#ff7eb6; --green:#4caf2e; --purple:#7c5cff; --txt:#1f2746; --sub:#5b6685;
+    --red:#ff5a5a; --ink:#23304f; --line:#d6e3f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(160deg,#e4f1ff 0%,#eafff2 100%);
+    color:var(--txt);min-height:100vh;padding:18px 14px 60px;}
+  .wrap{max-width:920px;margin:0 auto}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:linear-gradient(120deg,#ffffff,#eef6ff);
+    border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin-bottom:14px;
+    box-shadow:0 8px 24px rgba(80,120,200,.12)}
+  .avatar{width:58px;height:58px;border-radius:14px;
+    background:linear-gradient(135deg,var(--gold),var(--gold2));
+    display:grid;place-items:center;font-size:30px;flex:0 0 auto;
+    border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+  .who{flex:1 1 180px}
+  .who h1{font-size:20px;letter-spacing:.5px}
+  .who .rank{color:var(--gold-txt);font-weight:800;font-size:15px}
+  .who .sub{font-size:12px;color:var(--sub);margin-top:2px}
+  .stats{display:flex;gap:10px;flex:1 1 240px;justify-content:flex-end;flex-wrap:wrap}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:8px 12px;text-align:center;min-width:84px;box-shadow:0 3px 0 #e4ecf8}
+  .chip b{display:block;font-size:20px}
+  .chip.xp b{color:var(--cyan)} .chip.coin b{color:var(--gold-txt)}
+  .chip.streak b{color:var(--pink)}
+
+  nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  nav button{flex:1 1 auto;min-width:84px;cursor:pointer;border:none;
+    background:#fff;color:var(--sub);font-weight:700;font-size:14px;
+    padding:11px 6px;border-radius:12px;border:2px solid #cfe0f5;transition:.12s}
+  nav button:hover{transform:translateY(-1px)}
+  nav button.on{background:linear-gradient(120deg,var(--purple),var(--pink));
+    color:#fff;border-color:transparent;box-shadow:0 4px 0 rgba(124,92,255,.5)}
+
+  .view{display:none;animation:fade .25s ease}
+  .view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(80,120,200,.08)}
+  .card h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card h2 .ic{font-size:20px}
+
+  .gamebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    background:linear-gradient(120deg,#fff7e6,#eaf7ff);border:2px dashed var(--gold2);
+    border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:13px;color:var(--txt);line-height:1.6}
+  .gamebar b{color:var(--gold-txt)}
+
+  /* Rank ladder */
+  .ladder{display:flex;flex-direction:column-reverse;gap:8px}
+  .rung{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
+    background:var(--panel2);border:1px solid var(--line);opacity:.55}
+  .rung.reached{opacity:1;border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,179,0,.25)}
+  .rung.current{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(15,174,155,.4)}
+  .rung .emo{font-size:26px}
+  .rung .nm{font-weight:800}
+  .rung .xpn{margin-left:auto;color:var(--sub);font-size:13px}
+  .pbar{height:14px;background:#dbe7f7;border-radius:8px;overflow:hidden;margin-top:10px;border:1px solid var(--line)}
+  .pbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan2))}
+
+  /* quests */
+  .quest{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;
+    background:var(--panel2);border:1px solid var(--line);margin-bottom:10px}
+  .quest .badge-do{width:36px;height:36px;border-radius:10px;border:3px solid var(--sub);
+    background:#fff;cursor:pointer;font-size:18px;flex:0 0 auto;color:var(--sub);transition:.12s}
+  .quest .badge-do:hover{transform:translateY(-1px)}
+  .quest.done .badge-do{background:var(--green);border-color:var(--ink);color:#fff}
+  .quest.done{opacity:.75}
+  .quest .qi{flex:1}
+  .quest .qi b{font-size:15px}
+  .quest .qi small{display:block;color:var(--sub);font-size:12px;margin-top:2px}
+  .quest .reward{color:var(--gold-txt);font-weight:800;font-size:13px;white-space:nowrap}
+  .hint{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.6}
+  .btn{display:inline-block;cursor:pointer;border:none;border-radius:12px;
+    padding:12px 16px;font-weight:800;font-size:14px;color:#1f2746;
+    background:linear-gradient(120deg,var(--gold),var(--gold2));
+    border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);transition:.08s}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .btn.ghost{background:#fff;color:var(--sub);border:2px solid #cfe0f5;box-shadow:none}
+  .btn.ghost:active{transform:translateY(2px)}
+  .btn.pink{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;border-color:var(--ink)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+
+  /* badges */
+  .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+  .bdg{background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    padding:14px 10px;text-align:center;opacity:.45;filter:grayscale(.85)}
+  .bdg.got{opacity:1;filter:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,179,0,.3)}
+  .bdg .e{font-size:34px} .bdg .t{font-weight:800;font-size:13px;margin-top:6px;color:var(--txt)}
+  .bdg .d{font-size:11px;color:var(--sub);margin-top:2px}
+
+  /* rewards */
+  .shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+  .item{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .item .e{font-size:30px} .item .t{font-weight:800;margin:6px 0 4px;color:var(--txt)}
+  .item .c{color:var(--gold-txt);font-weight:800;font-size:13px}
+  .item button{margin-top:10px;width:100%}
+  .item button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+
+  .topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:6px}
+  .topic{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .topic .h{font-weight:800;margin-bottom:8px;color:var(--cyan)}
+  .topic li{font-size:13px;color:var(--txt);margin:5px 0 5px 16px;line-height:1.5}
+
+  .enladder{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .erow{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;border-left:5px solid var(--cyan)}
+  .erow b{color:var(--gold-txt)}
+  .erow .lv{display:inline-block;background:var(--purple);color:#fff;border-radius:8px;padding:1px 8px;font-size:12px;margin-right:6px}
+  .erow .tip{display:block;color:var(--sub);font-size:12px;margin-top:4px}
+
+  .libcard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}
+  .libcard .h{font-weight:800;color:var(--gold-txt);margin-bottom:6px}
+  .libcard ul{margin:4px 0 4px 18px}
+  .libcard li{font-size:13px;margin:3px 0;line-height:1.5}
+  .rec{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+  .reccard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px 15px}
+  .reccard .h{font-weight:800;color:var(--gold-txt);margin-bottom:6px;font-size:14px}
+  .reccard ul{margin:2px 0 2px 18px}
+  .reccard li{font-size:13px;margin:3px 0;line-height:1.5}
+  .reccard .tag{display:inline-block;font-size:11px;background:#e3eeff;border:1px solid #bcd4f5;color:var(--cyan);border-radius:999px;padding:1px 9px;margin-left:6px;vertical-align:middle}
+
+  .cktbl{width:100%;border-collapse:collapse;margin-top:8px}
+  .cktbl th,.cktbl td{border:2px solid var(--line);padding:11px 8px;text-align:center;font-size:14px}
+  .cktbl th{background:var(--panel2);color:var(--cyan)}
+  .cktbl td.day{font-weight:800;text-align:left;color:var(--txt)}
+  .cktbl td.box{width:15%}
+  @media print{
+    .cktbl th,.cktbl td{border-color:#888;color:#000}
+    .cktbl th{background:#eee}
+  }
+
+  textarea,input[type=text]{width:100%;background:#f1f7ff;color:var(--txt);
+    border:1px solid #cfe0f5;border-radius:10px;padding:10px;font-size:14px;font-family:inherit}
+  label{font-size:13px;color:var(--sub);display:block;margin:10px 0 4px}
+  .pastebox{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+  .pastebox textarea{min-height:60px;resize:vertical;font-size:13px}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:linear-gradient(120deg,var(--green),var(--cyan2));color:#06301f;
+    font-weight:800;padding:12px 22px;border-radius:30px;opacity:0;pointer-events:none;
+    transition:.3s;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:99;border:2px solid #0a3}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .note{font-size:13px;color:var(--sub);line-height:1.8}
+  .note b{color:var(--txt)}
+  .warn{background:#fff4e0;border:1px solid #f0c36d;border-radius:12px;padding:11px 13px;font-size:13px;color:#7a5a12;line-height:1.7;margin-bottom:10px}
+  .warn b{color:#a35a00}
+  .codechunk{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+  .codechunk textarea{flex:1;font-size:11px;line-height:1.45;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;color:#22304d;word-break:break-all;resize:none}
+  .codechunk .btn{flex:0 0 auto;align-self:center;font-size:12px;padding:8px 10px}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid #cfe0f5;
+    border-radius:20px;padding:3px 10px;font-size:12px;margin:3px 3px 0 0;color:var(--cyan)}
+
+  .statcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px;margin-bottom:4px}
+  .statcard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+  .statcard .se{font-size:26px}
+  .statcard .sv{font-weight:800;font-size:20px;color:var(--cyan);margin:4px 0 2px}
+  .statcard .sl{font-size:12px;color:var(--sub)}
+  .lhbar{height:14px;background:#dbe7f7;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:6px}
+  .lhbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+  .stattbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+  .stattbl th,.stattbl td{border:1px solid var(--line);padding:8px 6px;text-align:center}
+  .stattbl th{background:var(--panel2);color:var(--cyan)}
+  .stattbl td.day{font-weight:700;text-align:left;color:var(--txt)}
+
+  @media print{
+    body{background:#fff;color:#111}
+    .avatar,.stats{filter:none}
+    nav,.btn,.toast,.gamebar{display:none!important}
+    .card,.quest,.rung,.bdg,.item{break-inside:avoid}
+    :root{--txt:#111;--sub:#444;--panel:#fff;--panel2:#f4f4fa;--bg:#fff}
+  }
+
+  /* mobile optimization for phone check-in */
+  @media (max-width:600px){
+    body{padding:10px 10px 72px}
+    .wrap{max-width:100%}
+    header{flex-direction:column;align-items:flex-start;gap:10px;padding:14px}
+    .avatar{width:50px;height:50px;font-size:26px}
+    .who h1{font-size:18px}
+    .stats{width:100%;justify-content:space-between;gap:6px}
+    .chip{flex:1;min-width:0;padding:8px 4px}
+    .chip b{font-size:17px}
+    .gamebar{font-size:12px;padding:10px 12px;line-height:1.5}
+    nav{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    nav button{min-width:0;font-size:13px;padding:12px 4px;border-width:2px}
+    .card{padding:13px;margin-bottom:11px}
+    .card h2{font-size:15px}
+    .quest{gap:10px;padding:11px}
+    .quest .badge-do{width:46px;height:46px;font-size:23px;border-width:3px}
+    .quest .qi b{font-size:16px}
+    .quest .reward{font-size:12px}
+    .btn{padding:13px 14px;font-size:15px;width:100%;text-align:center}
+    .row{gap:8px}
+    .row .btn{width:auto}
+    .shop,.badges,.topics{grid-template-columns:1fr}
+    .statcards{grid-template-columns:1fr 1fr}
+    .enladder .erow,.topic,.libcard,.reccard{padding:12px}
+    .cktbl{font-size:11px}
+    .cktbl th,.cktbl td{padding:7px 3px}
+  }
+  .fab{position:fixed;right:16px;bottom:16px;z-index:50;background:linear-gradient(135deg,#ff7a59,#ff5a3c);color:#fff;border:none;border-radius:30px;padding:14px 18px;font-size:15px;font-weight:700;box-shadow:0 6px 18px rgba(255,90,60,.45);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
+  .fab:active{transform:scale(.96)}
+  @media print{.fab{display:none}}
+  /* 防误触锁定功能已移除，仅保留二次确认弹窗防手滑 */
+  .overlay{position:fixed;inset:0;background:rgba(20,30,60,.5);display:flex;align-items:center;justify-content:center;z-index:120;padding:20px}
+  .overlay.hidden{display:none}
+  .cmodal{background:#fff;border-radius:18px;padding:22px 20px;max-width:340px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.3);text-align:center;border:3px solid var(--ink)}
+  .ctitle{font-size:16px;font-weight:700;line-height:1.5;margin-bottom:18px;color:var(--ink)}
+  .cmodal .crow{display:flex;gap:10px}
+  .cmodal .crow .btn{flex:1}
+  /* 补打卡弹窗 */
+  .patchlist{max-height:44vh;overflow:auto;text-align:left;margin:2px 0 6px}
+  .patchdate{display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;margin:7px 0;cursor:pointer;font-weight:700;font-size:14px;transition:.12s}
+  .patchdate:not(.full):active{transform:scale(.98)}
+  .patchdate .pd-done{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+  .patchdate.full{opacity:.45;cursor:default;background:#f4f6f9}
+  .pchk{display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #eef1f5;font-size:14px;font-weight:600}
+  .pchk:last-child{border-bottom:none}
+  .pchk input{width:18px;height:18px;flex:none}
+  .pchk .pc-done{margin-left:auto;font-size:12px;color:#19b36b;font-weight:700}
+  .pback{font-size:12px;color:var(--accent);cursor:pointer;font-weight:700}
+  .phint{font-size:12px;color:var(--muted);margin:2px 0 8px}
+  @media print{.overlay{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="avatar">🗡️</div>
+    <div class="who">
+      <h1>小杨の阅读冒险王</h1>
+      <div class="rank" id="rankName">阅读学徒</div>
+      <div class="sub">🧱 我的世界 · 🗡️ 塞尔达传说 · 🎮 把阅读变成冒险</div>
+    </div>
+    <div class="stats">
+      <div class="chip xp"><b id="xpVal">0</b>经验值 XP</div>
+      <div class="chip coin"><b id="coinVal">0</b>金币 🪙</div>
+      <div class="chip streak"><b id="streakVal">0</b>连续天数 🔥</div>
+    </div>
+    <!-- 防误触锁定开关已移除，仅保留二次确认弹窗防手滑 -->
+  </header>
+
+  <!-- 锁定横幅已移除 -->
+
+  <div class="gamebar">
+    🎮 <b>游戏模式开启：</b> 🧱 <b>我的世界</b> = 每读一本就盖一块方块，攒出你的世界 ｜ 🗡️ <b>塞尔达</b> = 每本书是一个待解锁的神庙，读完就点亮 ｜ 地图越亮，你的冒险越牛！
+  </div>
+
+  <nav id="nav">
+    <button data-v="map" class="on">🗺️ 段位地图</button>
+    <button data-v="daily">✅ 今日任务</button>
+    <button data-v="weekly">👹 每周Boss</button>
+    <button data-v="badges">🏅 勋章墙</button>
+    <button data-v="shop">🛒 奖励商店</button>
+    <button data-v="guide">👨‍👩‍👦 家长指南</button>
+    <button data-v="english">📘 英文路线</button>
+    <button data-v="chat">💬 聊书</button>
+    <button data-v="print">🖨️ 打卡表</button>
+    <button data-v="stats">📊 统计</button>
+    <button data-v="script">🗣️ 开局话术</button>
+    <button data-v="setup">⚙️ 我的书库</button>
+  </nav>
+
+  <button id="fabBackup" class="fab" title="换设备前点这里，生成可复制的存档码">💾 备份同步</button>
+
+  <!-- MAP -->
+  <section class="view on" id="v-map">
+    <div class="card">
+      <h2><span class="ic">🗺️</span> 段位阶梯（经验值越高，段位越高）</h2>
+      <div class="ladder" id="ladder"></div>
+      <div class="pbar"><i id="rankBar" style="width:0%"></i></div>
+      <div class="hint" id="rankHint"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🎯</span> 怎么玩（给小杨看）</h2>
+      <p class="note">
+        1️⃣ 每天完成 <b>3 个今日任务</b>，就赚到经验值和金币。<br>
+        2️⃣ 经验值攒够了就<b>升段位</b>，从「阅读学徒」一路打到「传说阅读王」。<br>
+        3️⃣ 每周去图书馆 <b>点亮 1 座灯塔</b>（借书读完），集齐 12 座就能挑战 <b>终极Boss</b>、拿「解放大陆勋章」。<br>
+        4️⃣ 金币存进 <b>奖励商店</b>，换你真正想要的东西（点餐、游戏时间、挑书……）。<br>
+        5️⃣ 连续天数 🔥 不断就一直加成——<b>断一天会清零，所以要每天来一下哦</b>。
+      </p>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🎮</span> 游戏精神加油站</h2>
+      <p class="note">
+        🧱 <b>我的世界模式</b>：每读完一本书，就像在冒险世界里<b>盖好一块方块</b>。读得越多，你的"知识世界"就越大、越酷。今天要不要再盖一块？<br><br>
+        🗡️ <b>塞尔达模式</b>：每本书都是一个<b>待解锁的神庙 / 谜题</b>。翻开书 = 走进神庙，读完 = 点亮它、拿到宝箱（经验值+金币）。传说阅读王，就是走遍所有神庙的人。<br><br>
+        ⚔️ 把"读书"想成"打怪升级"：中文 20 分钟是日常任务，英文 1 本是刷副本，周末去图书馆是打 <b>Boss</b>。你不是在"被要求读书"，你是在<b>闯关</b>。
+      </p>
+    </div>
+  </section>
+
+  <!-- DAILY -->
+  <section class="view" id="v-daily">
+    <div class="card">
+      <h2><span class="ic">✅</span> 今日任务 <span id="todayDate" class="hint"></span></h2>
+      <div id="dailyList"></div>
+      <div class="hint" id="dailyStatus"></div>
+      <button id="patchBtn" class="btn ghost" style="margin-top:10px;width:100%">📅 补打卡（补忘打的日子）</button>
+    </div>
+    <div class="card">
+      <h2><span class="ic">⚡</span> 小窍门（让阅读不无聊）</h2>
+      <p class="note">
+        • <b>选自己想看的</b>：漫画、科普、笑话、冒险、游戏攻略书都算数，先别管"有没有营养"。<br>
+        • <b>中文阅读坐满 20 分钟</b>：定个闹钟，先专注读完这一块；坐不住先读 10 分钟也行，慢慢拉长到 20+，不强求天天满。<br>
+        • <b>英文用"听+跟读"</b>：点读笔/音频放一遍，你指读一遍，比死磕单词轻松多了。<br>
+        • <b>讲给爸妈听</b>：用一句话说"今天最爽/最离谱的一段"，就算完成任务。<br>
+        • <b>聊书别考试</b>：去「💬 聊书」抄几个话题跟爸妈瞎聊，比回答"中心思想"好玩。
+      </p>
+    </div>
+  </section>
+
+  <!-- WEEKLY -->
+  <section class="view" id="v-weekly">
+    <div class="card">
+      <h2><span class="ic">🗼</span> 周末Boss：点亮灯塔，解锁地图</h2>
+      <p class="note">每周去一次图书馆，挑 <b>1 本自己想借的书</b>（任何类型都行），回家读完或读一大半，就 <b>点亮 1 座灯塔、解锁一块新地图</b>！集齐 12 座灯塔，就能挑战终极Boss，解放整片大陆。</p>
+      <div class="quest" id="bossQuest">
+        <button class="badge-do" id="bossBtn">⬜</button>
+        <div class="qi"><b>点亮灯塔：借书 + 读一大半</b>
+          <small>去图书馆挑 1 本，本周内读完或读 ≥60%</small></div>
+        <div class="reward">+50 XP / +5 🪙</div>
+      </div>
+      <div class="hint">💡 图书馆就在附近，把"借书"变成像塞尔达里点亮瞭望塔一样的小探险。不知道看啥？让管理员推荐"男生爱看"那一排。</div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">⚔️</span> 终极Boss：解放大陆</h2>
+      <div class="quest" id="finalBossQuest">
+        <button class="badge-do" id="finalBossBtn">🔒</button>
+        <div class="qi"><b>⚔️ 挑战终极Boss</b>
+          <small id="finalBossSub">需先点亮 12 座灯塔（已点亮 0 / 12）</small></div>
+        <div class="reward">🏅 解放大陆勋章</div>
+      </div>
+      <div class="hint">🗺️ 每座灯塔都是一块被迷雾覆盖的地图。12 座全亮，迷雾散尽，大陆就回家了。</div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📈</span> 本周 / 灯塔进度</h2>
+      <div class="hint" id="weeklyStat"></div>
+    </div>
+  </section>
+
+  <!-- BADGES -->
+  <section class="view" id="v-badges">
+    <div class="card">
+      <h2><span class="ic">🏅</span> 勋章墙（集齐超有面子）</h2>
+      <div class="badges" id="badgeWall"></div>
+    </div>
+  </section>
+
+  <!-- SHOP -->
+  <section class="view" id="v-shop">
+    <div class="card">
+      <h2><span class="ic">🛒</span> 奖励商店（和爸妈提前说好哪些能换）</h2>
+      <div class="shop" id="shop"></div>
+      <div class="hint">⚠️ 奖励尽量"体验型"：点餐、游戏时间、挑书、户外活动，比直接给钱更让人记得住。</div>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="view" id="v-guide">
+    <div class="card">
+      <h2><span class="ic">👨‍👩‍👦</span> 家长陪读指南（三不原则）</h2>
+      <p class="note">
+        <b>① 不考试</b>：别问"这个词什么意思""中心思想是什么"。阅读是享受，不是上课。<br>
+        <b>② 不比较</b>：不和别人家孩子、不和哥哥姐姐比。只看小杨自己的进度条。<br>
+        <b>③ 不唠叨</b>：任务卡交给他自己点，家长只负责"哇你好厉害"和发奖励。<br><br>
+        <b>固定仪式</b>：每天晚饭后/睡前 20 分钟 = 家庭阅读时间，爸妈也拿本书，不刷手机。<br>
+        <b>庆祝机制</b>：升段位、拿勋章、打败Boss 都要小小庆祝（击掌、贴纸、拍张照发家庭群）。<br>
+        <b>英文不焦虑</b>：分级读物本来就是"能听懂 90% 才对"。太难就降一级，太简单就升一级，跟着感觉走。
+      </p>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🗓️</span> 18 周学期节奏（三阶段）</h2>
+      <p class="note">
+        <span class="pill">第1-4周 · 启动期</span> 目标：每天中文读上 20 分钟（坐不住先 10 分钟也行），不反感。任务从少到多，多夸。
+        家里分级读物随便翻，英文只做"听+指读"。<br><br>
+        <span class="pill">第5-12周 · 养成期</span> 目标：形成习惯，中文开始能连续读 20 分钟。
+        每周六固定图书馆日。英文尝试自己读一句+听一句。<br><br>
+        <span class="pill">第13-18周 · 冲刺期</span> 目标：自主选书、主动阅读。
+        挑战"一周一本稍厚点的书"，英文能读短故事并讲大意。期末开个"小杨读书发布会"。
+      </p>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="view" id="v-stats">
+    <div class="card">
+      <h2><span class="ic">📊</span> 战绩统计（每天打卡自动汇总，实时更新）</h2>
+      <p class="note">每完成一次今日任务或点亮灯塔，数据就自动存好并汇总到这里——不用再打印、不用手算。</p>
+      <div class="statcards" id="statCards"></div>
+      <div class="card" style="margin-top:12px">
+        <h2 style="font-size:14px"><span class="ic">🗼</span> 灯塔进度（解锁终极Boss）</h2>
+        <div class="lhbar"><i id="lhBar" style="width:0%"></i></div>
+        <div class="hint" id="lhHint"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📅</span> 按日期汇总（最近在前）</h2>
+      <table class="stattbl" id="statTable"></table>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🗓️</span> 按周汇总</h2>
+      <table class="stattbl" id="statWeek"></table>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="view" id="v-setup">
+    <div class="card">
+      <h2><span class="ic">⚙️</span> 我的书库 & 兴趣（家长填，越具体越有用）</h2>
+      <label>小杨感兴趣的主题（逗号分隔）</label>
+      <input type="text" id="inInterest" placeholder="例如：恐龙, 太空, 搞笑漫画, 足球, 侦探, 游戏攻略, 动物">
+      <label>家里的英文分级读物（逗号分隔）</label>
+      <input type="text" id="inReaders" placeholder="例如：牛津树, RAZ, 红火箭, 海尼曼, 大猫, 典范英语">
+      <label>想换的奖励（逗号分隔，会进奖励商店）</label>
+      <input type="text" id="inRewards" placeholder="例如：点一顿肯德基, 30分钟游戏, 挑1本漫画, 去公园踢球">
+      <div class="row" style="margin-top:12px">
+        <button class="btn pink" id="presetBtn">🎯 载入小杨专属预设</button>
+        <button class="btn" id="saveSetup">💾 保存设置</button>
+        <button class="btn ghost" id="resetAll">♻️ 清空全部进度</button>
+      </div>
+      <div class="hint" id="setupHint"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📚</span> 推荐书单（按小杨兴趣，去图书馆照着借）</h2>
+      <p class="note">下面根据你填的兴趣自动匹配。去图书馆直接照着找，或把喜欢的加进「家里的读物」。带 <span class="tag">英文</span> 的是顺手练英语的。</p>
+      <div class="rec" id="recList"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">💾</span> 存档备份（手机 ↔ 电脑互通）</h2>
+      <div class="warn">⚠️ <b>本游戏没有云同步</b>：数据只存在你「打开它的那个浏览器」里。手机 / 电脑 / 本地文件是三套独立存档，互不相通。<b>换设备必须手动同步一次</b>。<br>建议手机用 <b>自带浏览器（Safari / Chrome）打开此链接</b>当主力，<b>别在微信里直接玩</b>——微信内置浏览器会清缓存、且不能分享文件。</div>
+      <p class="note">⚠️ 微信<b>不能发送 .json 文件</b>，所以请用下面<b>文本存档码</b>法（最稳）：<br><b>方式一（推荐·文本）</b>：点 <b>「📋 复制存档码」</b> → 页面生成一段（或几段）码，<b>长按框内文字→全选→复制</b> → 微信发「文件传输助手」→ 电脑打开本网页，把文本粘贴到「粘贴并同步」框点同步。存档大时会自动分多段，分别发即可。<br><b>方式二（链接·易截断，兜底）</b>：点「复制存档链接」发过去打开即同步，但长链接常被微信截断。</p>
+      <div class="row">
+        <button class="btn" id="exportBtn">📤 导出存档</button>
+        <button class="btn ghost" id="importBtn">📥 导入存档</button>
+        <button class="btn ghost" id="copyCodeBtn">📋 复制存档码</button>
+      </div>
+      <div class="pastebox">
+        <textarea id="saveCode" placeholder="把另一台设备『复制存档码』得到的文本（可多段）粘贴到这里，再点同步"></textarea>
+        <button class="btn" id="syncCodeBtn">🔄 粘贴并同步</button>
+      </div>
+      <div id="codeChunks"></div>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+      <div class="hint" id="backupHint"></div>
+    </div>
+  </section>
+
+  <!-- ENGLISH -->
+  <section class="view" id="v-english">
+    <div class="card">
+      <h2><span class="ic">📘</span> 英文闯关路线（用家里的分级读物）</h2>
+      <p class="note">
+        <b>第 1 步 · 找起点</b>：放一本分级读物的音频，能听懂大概 <b>90%</b> 就从这一级开始；听不懂就降一级，太轻松就升一级。别一上来啃难的，会劝退。<br><br>
+        <b>第 2 步 · 每日听读配比</b>：每本 = <b>听 2 遍</b>（磨耳朵）→ <b>指读 1 遍</b>（手指点字跟着看）→ <b>跟读 1 遍</b>（能读哪句读哪句，不勉强）。这也是"今日任务"里的英文那一项。<br><br>
+        <b>第 3 步 · 升级信号</b>：连续 <b>5 本</b>都听懂 90%+ 且朗读顺畅 → 升一级。卡住就原地多读几本，不跳级。<br><br>
+        <b>第 4 步 · 每周节奏</b>：周一到周五每天 1 本；周末用图书馆借的英文/中文书"泛读"，不打卡也行，享受为主。
+      </p>
+      <div class="hint" id="enLib"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🪜</span> 小杨的英文资源升级阶梯</h2>
+      <p class="note">把你手头的资源按难度排好了。从 <b>第 1 级</b> 起步（或按"听懂 90%"法自测定起点），一级级往上打，读顺了再升。</p>
+      <div class="enladder" id="enLadder"></div>
+      <div class="hint">🎬 <b>加餐·泛听</b>：《神奇校车》动画 / 海量英文电影当作奖励和磨耳朵，不打卡，纯享受（正好喂他的"太空"兴趣）。</div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📊</span> 我的英文进度</h2>
+      <div class="hint" id="enStat"></div>
+      <div class="row"><button class="btn ghost" id="enUp">⬆️ 升一级（手动）</button></div>
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section class="view" id="v-chat">
+    <div class="card">
+      <h2><span class="ic">💬</span> 聊书话题库（替代"中心思想"式提问）</h2>
+      <p class="note">家长用这些话题跟小杨聊刚读的书，<b>像朋友安利一样</b>，别像老师抽查。三句万能开场：<b>"哇这段好____""后来呢？""要是你会咋办？"</b> 答不上来也没关系，聊得下去就赢。</p>
+      <div class="topics" id="topicWall"></div>
+      <div class="hint" id="chatLib"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📚</span> 按兴趣的图书馆借书清单</h2>
+      <p class="note">照小杨的兴趣，去图书馆就直奔这些方向（科普漫画+故事都算数，别只借"正经书"）：</p>
+      <div class="libcard"><div class="h">🚀 太空</div><ul>
+        <li>《神奇校车·太空系列》/ 太空百科（DK 儿童版）</li>
+        <li>《这就是太空》《太空小子》等科普漫画</li>
+        <li>配套看《神奇校车》动画（英文版也行，当磨耳朵）</li></ul></div>
+      <div class="libcard"><div class="h">🔫 军事武器</div><ul>
+        <li>兵器/飞机/坦克图鉴（DK 儿童兵器大百科、小小军迷系列）</li>
+        <li>军事科普绘本、战争历史漫画</li></ul></div>
+      <div class="libcard"><div class="h">🌍 像《小灵通漫游世界》</div><ul>
+        <li>《大中华寻宝记》《环球寻宝记》</li>
+        <li>《这就是中国/世界》《半小时漫画中国史》</li></ul></div>
+      <div class="libcard"><div class="h">🏯 像《甲骨文学校》（历史穿越）</div><ul>
+        <li>《汤小团》系列（历史冒险）</li>
+        <li>《写给儿童的中国历史》《如果历史是一群喵》《林汉达中国历史故事》</li></ul></div>
+      <div class="hint">💡 让小杨自己从每类挑 1 本借回家，放进"周末Boss"任务里读。</div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🔭</span> 小杨专属聊法（结合他的兴趣）</h2>
+      <div class="topics" id="topicWall2"></div>
+    </div>
+  </section>
+
+  <!-- PRINT -->
+  <section class="view" id="v-print">
+    <div class="card">
+      <h2><span class="ic">🖨️</span> 每周打卡表（贴墙上，完成就盖贴纸）</h2>
+      <p class="note">打印出来贴书房/冰箱。每天完成 3 项就贴 1 张贴纸到「贴纸★」格；集满一周来找爸妈换金币/奖励。格子留空，方便手写打勾或盖章。</p>
+      <table class="cktbl" id="ckTable"></table>
+      <div class="row"><button class="btn" onclick="window.print()">🖨️ 打印这张表</button>
+        <button class="btn ghost" onclick="window.print()">📄 另存为 PDF</button></div>
+    </div>
+  </section>
+
+  <!-- SCRIPT -->
+  <section class="view" id="v-script">
+    <div class="card">
+      <h2><span class="ic">🗣️</span> 开学第一周·开局话术（家长看，别给孩子看）</h2>
+      <p class="note"><b>核心姿态</b>：这是"咱俩一起玩的升级游戏"，不是"你要完成的任务"。你先兴奋，他才会兴奋。</p>
+      <div class="libcard"><div class="h">🟢 可以这样说</div><ul>
+        <li>"我发现个超像通关游戏的东西，咱俩要不要试试？读完书记经验值，能打怪升级。"</li>
+        <li>"你挑本最想看的，咱从最简单的开始，每天就 10 分钟，闹钟一响就能停。"</li>
+        <li>"奖励你来定——你想换点啥？游戏时间？挑书？点餐？"</li>
+        <li>"哇你今天升段位了！击个掌！"（真心夸，不提"你要坚持"）</li>
+      </ul></div>
+      <div class="libcard"><div class="h">🔴 千万别这样说</div><ul>
+        <li>"新学期了你要每天读书知道吗" / "这是为你好"</li>
+        <li>"昨天怎么没打卡？" / "别人家都读了"</li>
+        <li>考他："这个词什么意思？""中心思想是什么？"</li>
+      </ul></div>
+      <div class="libcard"><div class="h">📅 第一周节奏</div><ul>
+        <li>第1天：一起看闯关地图，让他选奖励、挑第一本书，只做 1 个任务就庆祝。</li>
+        <li>第2-3天：维持每天 1-2 项，重在"开始了就停得下"。</li>
+        <li>第4-5天：自然聊两句书（用💬聊书话题），不考试。</li>
+        <li>周末：一起去图书馆打Boss，让他自己挑书，回来贴纸盖章。</li>
+        <li>漏了一天？假装没看见，第二天轻松续上，绝不大惊小怪。</li>
+      </ul></div>
+      <div class="hint">💡 家长自己也要有"阅读时间"：他读书时你别刷手机，拿本书看，氛围比说教管用。</div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="confirmBox" class="overlay hidden">
+  <div class="cmodal">
+    <div class="ctitle" id="confirmMsg"></div>
+    <div class="crow">
+      <button class="btn ghost" id="confirmNo">取消</button>
+      <button class="btn" id="confirmYes">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="patchBox" class="overlay hidden">
+  <div class="cmodal" style="max-width:362px;text-align:left">
+    <div class="ctitle" style="text-align:center">📅 补打卡 · 最近 7 天</div>
+    <div id="patchStage1">
+      <div class="phint">选一个忘打的日子补上，连续天数 🔥 会一起补回来～（最多补最近 7 天，每月限 8 次）</div>
+      <div class="patchlist" id="patchList"></div>
+    </div>
+    <div id="patchStage2" style="display:none">
+      <span class="pback" id="patchBack">← 返回选日期</span>
+      <div class="ctitle" id="patchDateTitle" style="text-align:left;margin:6px 0 4px"></div>
+      <div id="patchChks"></div>
+      <div class="crow" style="margin-top:12px">
+        <button class="btn ghost" id="patchCancel">取消</button>
+        <button class="btn" id="patchOk">确认补打卡</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function __readingInit(){
+const KEY="xiaoyang_reading_v1";
+const RANKS=[
+  {n:"阅读学徒",e:0,emo:"🥉"},
+  {n:"冒险者",e:200,emo:"🥈"},
+  {n:"勇者",e:500,emo:"🥇"},
+  {n:"骑士",e:900,emo:"⚔️"},
+  {n:"英雄",e:1400,emo:"🛡️"},
+  {n:"传说阅读王",e:2000,emo:"👑"},
+];
+const QUESTS=[
+  {id:"cn",name:"中文阅读 20 分钟",sub:"漫画/科普/故事都行，专注读完一块",xp:15,coin:2,key:"cn"},
+  {id:"en",name:"英文分级 1 本（听+读）",sub:"点读笔/音频放一遍，你指读一遍",xp:15,coin:1,key:"en"},
+  {id:"tell",name:"把今天读到的讲给爸妈听",sub:"一句话也行：最爽/最离谱的一段",xp:10,coin:1,key:"tell"},
+];
+const BADGES=[
+  {id:"firstEn",e:"🌟",t:"英文启航",d:"读完第1本英文分级",test:s=>s.en>=1},
+  {id:"lib",e:"🏰",t:"图书馆探险家",d:"打败1次周末Boss",test:s=>s.boss>=1},
+  {id:"streak7",e:"🔥",t:"七日连胜",d:"连续阅读7天",test:s=>s.streak>=7},
+  {id:"streak21",e:"💎",t:"习惯王者",d:"连续阅读21天",test:s=>s.streak>=21},
+  {id:"finisher",e:"📕",t:"读完一本啦",d:"完成1本较厚的书",test:s=>s.books>=1},
+  {id:"story",e:"🎤",t:"故事大王",d:"讲过5次给爸妈听",test:s=>s.tell>=5},
+  {id:"boss3",e:"👑",t:"Boss克星",d:"打败3次周末Boss",test:s=>s.boss>=3},
+  {id:"liberate",e:"🗺️",t:"解放大陆勋章",d:"点亮12灯塔·击败终极Boss",test:s=>s.finalBoss},
+];
+const DEFAULT_REWARDS=[
+  {t:"决定今晚吃什么",c:30,e:"🍔"},
+  {t:"额外30分钟游戏/屏幕",c:50,e:"🎮",monthlyLimit:3},
+  {t:"一次户外活动（骑行/踢球/游泳1小时）",c:90,e:"🚲"},
+  {t:"请一个朋友来玩",c:120,e:"🤝"},
+  {t:"周末近郊短途旅行（爬山/博物馆/水族馆）",c:220,e:"🏞️"},
+  {t:"动物园/海洋馆一日游",c:260,e:"🦁"},
+  {t:"露营一晚",c:320,e:"⛺"},
+  {t:"一件想要的小礼物",c:200,e:"🎁"},
+];
+
+/* book recommendations by interest */
+const RECOMMEND=[
+  {kw:["军事","武器"],h:"🔫 军事武器（中文图鉴/科普）",books:[
+    "《世界武器大全 / 兵器百科》（图册类，男生超爱翻）",
+    "《少年中国军事》系列（故事+装备）",
+    "《写给孩子的军事历史》",
+    "DK 军事百科（中英双语图册，顺手练英文） [英文]"]},
+  {kw:["太空"],h:"🚀 太空（中文科普 + 英文进阶）",books:[
+    "《神奇校车·迷失太空》（和他看的英文动画衔接）",
+    "《太空百科全书》（DK/少儿彩图版）",
+    "《给孩子的天文课》",
+    "The Magic School Bus 太空系列（听读进阶） [英文]"]},
+  {kw:["小灵通","漫游","世界","地理"],h:"🌍 像《小灵通漫游世界》（地理/百科/冒险）",books:[
+    "《大中华寻宝记》系列（漫画+地理，停不下来）",
+    "《半小时漫画中国地理 / 世界史》",
+    "《这就是中国/地理》",
+    "《跟着课本去旅行》"]},
+  {kw:["甲骨文","历史","穿越"],h:"🏯 像《甲骨文学校》（历史穿越/故事）",books:[
+    "《汤小团》系列（历史冒险，隋唐/两汉…）",
+    "《写给儿童的中国历史》",
+    "《如果历史是一群喵》",
+    "《少年读史记》"]},
+  {kw:["恐龙"],h:"🦕 恐龙 / 动物（若也喜欢）",books:[
+    "《恐龙百科全书》",
+    "《我的野生动物朋友》",
+    "《西顿动物记》"]},
+  {kw:["侦探","冒险","搞笑"],h:"🕵️ 侦探 / 冒险 / 搞笑（男孩子向）",books:[
+    "《米小圈上学记》（轻松搞笑，中文阅读入门友好）",
+    "《装在口袋里的爸爸》",
+    "《冒险小虎队》",
+    "Nate the Great / Dog Man（英文趣味） [英文]"]}
+];
+function matchRecommend(){
+  const it=(S.interest||"").toLowerCase();
+  if(!it.trim()) return RECOMMEND.slice();
+  const hit=RECOMMEND.filter(g=>g.kw.some(k=>it.includes(k.toLowerCase())));
+  return hit.length?hit:RECOMMEND.slice();
+}
+function renderRecommend(){
+  const box=document.getElementById("recList");if(!box)return;box.innerHTML="";
+  const list=matchRecommend();
+  list.forEach(g=>{
+    const d=document.createElement("div");d.className="reccard";
+    d.innerHTML=`<div class="h">${g.h}</div><ul>${g.books.map(b=>{
+      const en=b.endsWith("[英文]");const t=b.replace(" [英文]","");
+      return `<li>${t}${en?'<span class="tag">英文</span>':''}</li>`;
+    }).join("")}</ul>`;
+    box.appendChild(d);
+  });
+}
+
+let S=load();
+function load(){
+  try{const r=JSON.parse(localStorage.getItem(KEY));
+    if(r){
+      if(Array.isArray(r.rewards)){
+        r.rewards=r.rewards.filter(x=>!x.t||!x.t.includes("图书馆"));
+        r.rewards.forEach(x=>{if(x&&x.t&&x.t.includes("额外30分钟"))x.monthlyLimit=3;});
+      }
+      if(typeof r.lighthouse!=="number")r.lighthouse=0;
+      if(typeof r.finalBoss!=="boolean")r.finalBoss=false;
+      r.lock=false;r.lockPwd=""; /* 防误触锁定已移除：强制清掉旧存档的锁定状态，避免按钮永久锁死 */
+      if(!r.monthClaim)r.monthClaim={};
+      if(!r.monthPatch)r.monthPatch={};
+      return r;
+    }
+  }catch(e){}
+  return {xp:0,coins:0,streak:0,lastDate:null,lastWeek:null,
+    cn:0,en:0,tell:0,books:0,boss:0,enLevel:1,
+    dailyDone:{},bossDone:false,claimed:{},lighthouse:0,finalBoss:false,monthClaim:{},monthPatch:{},
+    interest:"军事武器, 太空, 《小灵通漫游世界》, 《甲骨文学校》",
+    readers:"丽声自然拼读, 苍蝇小子Fly Guy, 安妮花, 神奇校车, Nate the Great, Dog Man, Henry and Mudge, Owl Diaries, Frog and Toad, Geronimo Stilton, Tom Gates, Diary of a Wimpy Kid, Roald Dahl, 英文电影",
+    rewards:[
+      {t:"点一顿肯德基/披萨",c:30,e:"🍔"},
+      {t:"额外30分钟游戏时间",c:50,e:"🎮",monthlyLimit:3},
+      {t:"一次户外活动（骑行/踢球/游泳1小时）",c:90,e:"🚲"},
+      {t:"看一部英文电影",c:100,e:"🎬"},
+      {t:"去军事/太空主题展或科技馆",c:150,e:"🚀"},
+      {t:"请朋友来玩+点外卖",c:200,e:"🤝"},
+      {t:"周末近郊短途旅行（爬山/博物馆/水族馆）",c:220,e:"🏞️"},
+      {t:"动物园/海洋馆一日游",c:260,e:"🦁"},
+      {t:"露营一晚",c:320,e:"⛺"}
+    ]};
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function today(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function dstr(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function dayIsDone(dt){const rec=S.dailyDone[dt];if(!rec)return false;for(const k in rec){if(rec[k])return true;}return false;}
+/* 统一重算连续天数：从今天往前数，凡 dailyDone 里有任意已完成任务即计入连续，遇第一个空日停止 */
+function recomputeStreak(){
+  let s=0;const d=new Date();
+  while(true){
+    if(dayIsDone(dstr(d))){s++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  S.streak=s;
+  S.lastDate=(function(){let dd=new Date();while(true){if(dayIsDone(dstr(dd)))return dstr(dd);dd.setDate(dd.getDate()-1);if(dd.getFullYear()<2000)return null;}})();
+}
+/* 在指定日期完成/取消某任务（含奖励发放，已完成则不再重复发） */
+function completeOnDate(q,dt){if(!S.dailyDone[dt])S.dailyDone[dt]={};if(S.dailyDone[dt][q.id])return;S.dailyDone[dt][q.id]=true;S.xp+=q.xp;S.coins+=q.coin;S[q.key]=(S[q.key]||0)+1;}
+function cancelOnDate(q,dt){if(!S.dailyDone[dt]||!S.dailyDone[dt][q.id])return;S.dailyDone[dt][q.id]=false;S.xp=Math.max(0,S.xp-q.xp);S.coins=Math.max(0,S.coins-q.coin);S[q.key]=Math.max(0,(S[q.key]||0)-1);}
+function weekKey(){const d=new Date();const w=Math.ceil(((d-new Date(d.getFullYear(),0,1))/86400000+new Date(d.getFullYear(),0,1).getDay())/7);return d.getFullYear()+"-W"+w;}
+function monthStr(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1);}
+function weekStart(dtStr){const d=new Date(dtStr);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+
+/* rank */
+function rankIndex(){let i=0;for(let k=0;k<RANKS.length;k++){if(S.xp>=RANKS[k].e)i=k;}return i;}
+function renderRank(){
+  const i=rankIndex();document.getElementById("rankName").textContent=RANKS[i].n;
+  document.getElementById("xpVal").textContent=S.xp;
+  document.getElementById("coinVal").textContent=S.coins;
+  document.getElementById("streakVal").textContent=S.streak;
+  const lad=document.getElementById("ladder");lad.innerHTML="";
+  RANKS.forEach((r,k)=>{
+    const d=document.createElement("div");d.className="rung"+(S.xp>=r.e?" reached":"")+(k===i?" current":"");
+    d.innerHTML=`<div class="emo">${r.emo}</div><div class="nm">${r.n}</div><div class="xpn">${r.e} XP</div>`;
+    lad.appendChild(d);
+  });
+  const cur=RANKS[i],nxt=RANKS[i+1];
+  let pct;
+  if(!nxt){pct=100;document.getElementById("rankHint").textContent="🎉 已是最高段位·传说阅读王！继续守护你的阅读王国吧。";}
+  else{const span=nxt.e-cur.e;pct=Math.min(100,Math.round((S.xp-cur.e)/span*100));
+    document.getElementById("rankHint").textContent=`距「${nxt.n}」还差 ${Math.max(0,nxt.e-S.xp)} XP`;
+  }
+  document.getElementById("rankBar").style.width=pct+"%";
+}
+
+/* daily */
+function renderDaily(){
+  document.getElementById("todayDate").textContent="（"+today()+"）";
+  const list=document.getElementById("dailyList");list.innerHTML="";
+  const doneToday=S.dailyDone[today()]||{};
+  QUESTS.forEach(q=>{
+    const done=!!doneToday[q.id];
+    const d=document.createElement("div");d.className="quest"+(done?" done":"");
+    d.innerHTML=`<button class="badge-do">${done?"✅":"⬜"}</button>
+      <div class="qi"><b>${q.name}</b><small>${q.sub}</small></div>
+      <div class="reward">+${q.xp} XP / +${q.coin}🪙</div>`;
+    d.querySelector("button").onclick=()=>{
+      /* 防误触锁定已移除，仅保留二次确认弹窗 */
+      const willComplete=!done;
+      const msg=willComplete?("确定完成「"+q.name+"」吗？完成后 +"+q.xp+" XP、+"+q.coin+"🪙"+(q.id==="cn"?"，并计入连续天数":"")):("确定取消「"+q.name+"」吗？会收回 "+q.xp+" XP、"+q.coin+"🪙");
+      showConfirm(msg,()=>toggleQuest(q,done));
+    };
+    list.appendChild(d);
+  });
+  const all=QUESTS.every(q=>doneToday[q.id]);
+  document.getElementById("dailyStatus").textContent=all?"🏆 今日任务全部完成！明天别断，连续天数会加加加～":"今天还差几个，点左边方块就能完成哦。";
+}
+function toggleQuest(q,wasDone){
+  const t=today();
+  if(!wasDone){completeOnDate(q,t);toast("+"+q.xp+" XP！"+q.name);}
+  else{cancelOnDate(q,t);}
+  recomputeStreak();save();renderAll();
+}
+function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+
+/* weekly boss */
+function renderWeekly(){
+  const b=document.getElementById("bossBtn");
+  b.textContent=S.bossDone?"✅":"⬜";
+  document.getElementById("bossQuest").classList.toggle("done",S.bossDone);
+  const lh=S.lighthouse||0;
+  document.getElementById("weeklyStat").innerHTML=
+    `🗼 已点亮灯塔：<b style="color:var(--gold)">${lh} / 12</b> ｜ 周末Boss 击败：${S.boss} 次 ｜ 借书/读完较厚书：${S.books} 本 ｜ 当前连续🔥 ${S.streak} 天`+
+    (S.finalBoss?`<br>🏅 <b style="color:var(--gold)">终极Boss 已击败 · 大陆已解放！</b>`:"");
+  const fb=document.getElementById("finalBossBtn");
+  fb.textContent=S.finalBoss?"✅":(lh>=12?"⚔️":"🔒");
+  document.getElementById("finalBossQuest").classList.toggle("done",S.finalBoss);
+  document.getElementById("finalBossSub").textContent= lh>=12
+    ? (S.finalBoss?"已解放！可再次点亮守护大陆":"已集齐 12 灯塔，点击挑战终极Boss！")
+    : `需先点亮 12 座灯塔（已点亮 ${lh} / 12）`;
+}
+document.getElementById("bossBtn").onclick=()=>{
+  /* 防误触锁定已移除，仅保留二次确认弹窗 */
+  const willDo=!S.bossDone;
+  const msg=willDo?"确定点亮本周灯塔（周末Boss）吗？点亮后 +50 XP、灯塔 +1":"确定要熄灭这座灯塔吗？会收回 50 XP、灯塔 -1";
+  showConfirm(msg,doBossToggle);
+};
+function doBossToggle(){
+  if(!S.bossDone){S.bossDone=true;S.boss+=1;S.xp+=50;S.coins+=5;S.books+=1;S.lighthouse=(S.lighthouse||0)+1;
+    toast("🗼 灯塔点亮！+50 XP");}else{S.bossDone=false;S.boss=Math.max(0,S.boss-1);S.xp=Math.max(0,S.xp-50);S.coins=Math.max(0,S.coins-5);S.books=Math.max(0,S.books-1);S.lighthouse=Math.max(0,(S.lighthouse||0)-1);}
+  if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;}
+  save();renderAll();
+}
+document.getElementById("finalBossBtn").onclick=()=>{
+  /* 防误触锁定已移除，仅保留二次确认弹窗 */
+  if(S.finalBoss){
+    showConfirm("确定取消『解放大陆』吗？会收回 500 XP、50🪙，大陆重新被迷雾笼罩",()=>{
+      S.finalBoss=false;S.xp=Math.max(0,S.xp-500);S.coins=Math.max(0,S.coins-50);
+      toast("已取消 · 大陆重新被迷雾笼罩");save();renderAll();});
+    return;
+  }
+  if((S.lighthouse||0)<12){toast("还差 "+(12-(S.lighthouse||0))+" 座灯塔才能挑战终极Boss！");return;}
+  showConfirm("确定挑战终极Boss、解放大陆吗？成功后 +500 XP、+50🪙，解锁「解放大陆勋章」",()=>{
+    S.finalBoss=true;S.xp+=500;S.coins+=50;
+    toast("🏅 大陆解放！解锁「解放大陆勋章」！");save();renderAll();});
+};
+
+/* badges */
+function renderBadges(){
+  const w=document.getElementById("badgeWall");w.innerHTML="";
+  BADGES.forEach(b=>{
+    const got=b.test(S);
+    const d=document.createElement("div");d.className="bdg"+(got?" got":"");
+    d.innerHTML=`<div class="e">${b.e}</div><div class="t">${b.t}</div><div class="d">${b.d}</div>`;
+    w.appendChild(d);
+  });
+}
+
+/* shop */
+function renderShop(){
+  const shop=document.getElementById("shop");shop.innerHTML="";
+  const items=(S.rewards&&S.rewards.length)?S.rewards:DEFAULT_REWARDS;
+  const m=monthStr();
+  items.forEach((it,idx)=>{
+    const claimed=S.claimed[idx];
+    let remaining=null;
+    if(it.monthlyLimit){const mc=S.monthClaim[it.t]||{month:m,n:0};if(mc.month!==m)mc.n=0;remaining=it.monthlyLimit-mc.n;}
+    const d=document.createElement("div");d.className="item";
+    const label=claimed?"已兑换":(it.monthlyLimit?("兑换（本月剩 "+remaining+" 次）"):"兑换");
+    d.innerHTML=`<div class="e">${it.e||"🎁"}</div><div class="t">${it.t}</div>
+      <div class="c">${it.c} 🪙${it.monthlyLimit?(" ｜ 每月限 "+it.monthlyLimit+" 次"):""}</div>
+      <button class="btn ${claimed?'ghost':''}">${label}</button>`;
+    const btn=d.querySelector("button");
+    btn.disabled=claimed||S.coins<it.c||(it.monthlyLimit&&remaining<=0);
+    btn.onclick=()=>{
+      /* 防误触锁定已移除，仅保留二次确认弹窗 */
+      if(S.coins<it.c){toast("金币不够，再攒攒～");return;}
+      if(it.monthlyLimit){const mc=S.monthClaim[it.t]||{month:m,n:0};if(mc.month!==m){mc.month=m;mc.n=0;}
+        if(mc.n>=it.monthlyLimit){toast("本月「"+it.t+"」已兑换 "+it.monthlyLimit+" 次，下月再来～");return;}
+        mc.n++;S.monthClaim[it.t]=mc;}
+      S.coins-=it.c;S.claimed[idx]=true;toast("兑换成功："+it.t);
+      save();renderAll();
+    };
+    shop.appendChild(d);
+  });
+}
+
+/* stats: auto-aggregated on every save, grouped by date & week */
+function renderStats(){
+  const sc=document.getElementById("statCards");if(!sc)return;
+  const totalDone=(S.cn||0)+(S.en||0)+(S.tell||0);
+  const lh=S.lighthouse||0;
+  const ri=rankIndex();
+  const tiles=[
+    ["📚","累计完成任务",totalDone],
+    ["🗼","点亮灯塔",lh+" / 12"],
+    ["🔥","当前连续",S.streak+" 天"],
+    ["🏅","当前段位",RANKS[ri].n],
+    ["⭐","总经验值",S.xp],
+    ["🪙","当前金币",S.coins],
+  ];
+  sc.innerHTML=tiles.map(t=>`<div class="statcard"><div class="se">${t[0]}</div><div class="sv">${t[2]}</div><div class="sl">${t[1]}</div></div>`).join("");
+  const pct=Math.min(100,Math.round(lh/12*100));
+  document.getElementById("lhBar").style.width=pct+"%";
+  document.getElementById("lhHint").innerHTML=`已点亮 <b style="color:var(--gold)">${lh}</b> / 12 座灯塔 ｜ ${lh>=12?'🏅 已可挑战终极Boss，解放大陆！':('还差 '+(12-lh)+' 座解锁终极Boss')}`;
+  const entries=Object.keys(S.dailyDone||{}).sort().reverse();
+  let dh="<tr><th>日期</th><th>📖 中文</th><th>🔤 英文</th><th>🗣️ 讲书</th><th>当日完成</th></tr>";
+  if(!entries.length)dh+="<tr><td colspan='5'>还没有打卡记录，完成今日任务就会出现在这里～</td></tr>";
+  entries.forEach(dt=>{
+    const d=S.dailyDone[dt]||{};
+    const c=!!d.cn,e=!!d.en,t=!!d.tell;
+    const done=[c,e,t].filter(Boolean).length;
+    dh+=`<tr><td class="day">${dt}</td><td>${c?'✅':'—'}</td><td>${e?'✅':'—'}</td><td>${t?'✅':'—'}</td><td><b>${done}</b>/3</td></tr>`;
+  });
+  document.getElementById("statTable").innerHTML=dh;
+  const weeks={};
+  entries.forEach(dt=>{
+    const ws=weekStart(dt);
+    if(!weeks[ws])weeks[ws]={days:0,tasks:0};
+    weeks[ws].days+=1;
+    const d=S.dailyDone[dt]||{};
+    weeks[ws].tasks+=(!!d.cn)+(!!d.en)+(!!d.tell);
+  });
+  const wk=Object.keys(weeks).sort().reverse();
+  let wh="<tr><th>周（周一）</th><th>阅读天数</th><th>完成任务数</th></tr>";
+  if(!wk.length)wh+="<tr><td colspan='3'>还没有按周的数据～</td></tr>";
+  wk.forEach(w=>{wh+=`<tr><td class="day">${w}</td><td>${weeks[w].days}</td><td>${weeks[w].tasks}</td></tr>`;});
+  document.getElementById("statWeek").innerHTML=wh;
+}
+
+/* setup */
+function renderSetup(){
+  document.getElementById("inInterest").value=S.interest||"";
+  document.getElementById("inReaders").value=S.readers||"";
+  document.getElementById("inRewards").value=(S.rewards||[]).map(r=>r.t).join(", ");
+  renderRecommend();
+}
+document.getElementById("saveSetup").onclick=()=>{
+  S.interest=document.getElementById("inInterest").value.trim();
+  S.readers=document.getElementById("inReaders").value.trim();
+  const raw=document.getElementById("inRewards").value.trim();
+  if(raw){
+    S.rewards=raw.split(/[,，]/).map(s=>s.trim()).filter(Boolean).map((t,i)=>({t,e:"🎁",c:30+(i+1)*20}));
+  }
+  save();toast("设置已保存 ✔");
+  document.getElementById("setupHint").textContent="已保存。书库："+(S.readers||"未填")+" ｜ 兴趣："+(S.interest||"未填");
+};
+document.getElementById("resetAll").onclick=()=>{
+  /* 防误触锁定已移除，仅保留二次确认弹窗 */
+  if(confirm("确定清空全部进度？此操作不可恢复。")){
+    localStorage.removeItem(KEY);S=load();renderAll();toast("已重置");}
+};
+document.getElementById("presetBtn").onclick=()=>{
+  S.interest="军事武器, 太空, 《小灵通漫游世界》, 《甲骨文学校》";
+  S.readers="丽声自然拼读, 苍蝇小子Fly Guy, 安妮花, 神奇校车, Nate the Great, Dog Man, Henry and Mudge, Owl Diaries, Frog and Toad, Geronimo Stilton, Tom Gates, Diary of a Wimpy Kid, Roald Dahl, 英文电影";
+  S.rewards=[
+    {t:"点一顿肯德基/披萨",c:30,e:"🍔"},
+    {t:"额外30分钟游戏时间",c:50,e:"🎮",monthlyLimit:3},
+    {t:"一次户外活动（骑行/踢球/游泳1小时）",c:90,e:"🚲"},
+    {t:"看一部英文电影",c:100,e:"🎬"},
+    {t:"去军事/太空主题展或科技馆",c:150,e:"🚀"},
+    {t:"请朋友来玩+点外卖",c:200,e:"🤝"},
+    {t:"周末近郊短途旅行（爬山/博物馆/水族馆）",c:220,e:"🏞️"},
+    {t:"动物园/海洋馆一日游",c:260,e:"🦁"},
+    {t:"露营一晚",c:320,e:"⛺"}
+  ];
+  save();renderAll();toast("已载入小杨专属预设 ✔");
+};
+
+/* backup: export / import / share-link for cross-device sync */
+function downloadFallback(blob,name,bh){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
+  bh.textContent="✅ 存档文件已下载："+name+" — 用微信发到「文件传输助手」，电脑打开网页点「导入存档」即可同步。";
+}
+function exportSave(){
+  const name="小杨阅读存档_"+today()+".json";
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const bh=document.getElementById("backupHint");
+  const file=new File([blob],name,{type:"application/json"});
+  // 手机端优先：直接调起系统分享（可发微信文件助手）
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:"小杨阅读存档",text:"阅读冒险王存档，请在电脑端网页『导入存档』"})
+      .then(()=>{bh.textContent="✅ 已调起分享，选微信「文件传输助手」发送即可。";toast("已发送 ✔");})
+      .catch(()=>downloadFallback(blob,name,bh));
+  }else if(navigator.share){
+    navigator.share({title:"小杨阅读存档",text:JSON.stringify(S,null,2)})
+      .catch(()=>downloadFallback(blob,name,bh));
+  }else{
+    downloadFallback(blob,name,bh);
+  }
+}
+function importSave(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{const data=JSON.parse(reader.result);
+      if(typeof data!=="object"||!data)throw 0;
+      Object.assign(S,data);
+      save();renderAll();
+      document.getElementById("backupHint").textContent="✅ 存档已导入，进度已同步到这台设备。";
+      toast("存档已导入 ✔");
+    }catch(e){toast("导入失败：文件格式不对");}
+  };
+  reader.readAsText(file);
+}
+function renderCodeChunks(parts){
+  const box=document.getElementById("codeChunks");box.innerHTML="";
+  parts.forEach((p,i)=>{
+    const wrap=document.createElement("div");wrap.className="codechunk";
+    const ta=document.createElement("textarea");ta.readOnly=true;ta.value=p;ta.rows=3;
+    ta.setAttribute("onclick","this.select()");
+    const btn=document.createElement("button");btn.className="btn ghost";btn.textContent="📋 复制本段";
+    btn.onclick=()=>{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(p).then(()=>toast("已复制第"+(i+1)+"段 ✔"))
+          .catch(()=>{ta.select();if(document.execCommand)document.execCommand("copy");toast("已选中，请复制");});
+      }else{ta.select();if(document.execCommand)document.execCommand("copy");toast("已选中，请复制");}
+    };
+    wrap.appendChild(ta);wrap.appendChild(btn);box.appendChild(wrap);
+  });
+}
+function copySaveCode(){
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const hint=document.getElementById("backupHint");
+  const safe=1500;
+  if(b64.length<=safe){
+    renderCodeChunks([b64]);
+    hint.innerHTML="📋 存档码已生成（约 "+(b64.length/1024).toFixed(1)+"KB）。<b>长按下面框内文字→全选→复制</b>，发到微信「文件传输助手」（或任意聊天），再到另一台设备打开本网页，把文本粘贴到「粘贴并同步」框点同步。<br>⚠️ 微信不能发 .json 文件，所以请用这种<b>文本</b>方式。";
+    toast("存档码已生成，请长按复制");
+  }else{
+    const n=Math.ceil(b64.length/safe);const parts=[];
+    for(let i=0;i<n;i++)parts.push("RQ"+(i+1)+"|"+b64.slice(i*safe,(i+1)*safe));
+    renderCodeChunks(parts);
+    hint.innerHTML="📋 存档较大，已分成 <b>"+n+" 段</b>。请<b>分别</b>复制每段、分 "+n+" 条消息发到微信；另一台设备把各段<b>依次粘贴</b>到「粘贴并同步」框（RQ 标签会自动忽略）再点同步。";
+    toast("已分 "+n+" 段，请分别发送");
+  }
+}
+function syncFromCode(){
+  let v=(document.getElementById("saveCode").value||"").trim();
+  if(!v){toast("请先粘贴存档码");return;}
+  v=v.replace(/RQ\d+\|/g,"").replace(/\s+/g,"");
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(v))));
+    if(typeof data!=="object"||!data)throw 0;
+    Object.assign(S,data);save();renderAll();
+    document.getElementById("backupHint").textContent="✅ 存档已同步到这台设备。";
+    toast("存档已同步 ✔");
+  }catch(e){toast("同步失败：存档码不完整，请确认每段都粘贴全了");}
+}
+document.getElementById("exportBtn").onclick=exportSave;
+document.getElementById("importBtn").onclick=()=>document.getElementById("importFile").click();
+document.getElementById("importFile").onchange=e=>{if(e.target.files&&e.target.files[0])importSave(e.target.files[0]);e.target.value="";};
+document.getElementById("copyCodeBtn").onclick=copySaveCode;
+document.getElementById("syncCodeBtn").onclick=syncFromCode;
+document.getElementById("fabBackup").onclick=()=>{
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+  const nb=document.querySelector('#nav button[data-v="setup"]');if(nb)nb.classList.add("on");
+  document.getElementById("v-setup").classList.add("on");
+  if(typeof copySaveCode==="function")copySaveCode();
+  const card=document.getElementById("codeChunks").closest(".card");
+  if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
+};
+
+/* confirm modal + lock */
+let _confirmCb=null;
+function showConfirm(msg,onYes){
+  const box=document.getElementById("confirmBox");
+  document.getElementById("confirmMsg").textContent=msg;
+  _confirmCb=onYes;box.classList.remove("hidden");
+}
+document.getElementById("confirmNo").onclick=()=>{document.getElementById("confirmBox").classList.add("hidden");_confirmCb=null;};
+document.getElementById("confirmYes").onclick=()=>{const cb=_confirmCb;document.getElementById("confirmBox").classList.add("hidden");_confirmCb=null;if(cb)cb();};
+  /* 防误触锁定机制已完全移除，仅保留二次确认弹窗 showConfirm 防手滑 */
+
+/* ===== 补打卡 ===== */
+let patchDate=null;
+function patchMonthUsed(){return S.monthPatch[monthStr()]||0;}
+function openPatch(){
+  document.getElementById("patchStage1").style.display="";
+  document.getElementById("patchStage2").style.display="none";
+  renderPatchList();
+  document.getElementById("patchBox").classList.remove("hidden");
+}
+function renderPatchList(){
+  const list=document.getElementById("patchList");list.innerHTML="";
+  const used=patchMonthUsed();let any=false;
+  for(let i=1;i<=7;i++){
+    const d=new Date();d.setDate(d.getDate()-i);const dt=dstr(d);
+    const rec=S.dailyDone[dt]||{};
+    const done=QUESTS.filter(q=>rec[q.id]).length;
+    if(done>=QUESTS.length)continue;
+    any=true;
+    const div=document.createElement("div");div.className="patchdate";
+    div.innerHTML=`<span>${dt}</span><span class="pd-done">已打 ${done}/${QUESTS.length}</span>`;
+    div.onclick=()=>openPatchDate(dt);
+    list.appendChild(div);
+  }
+  if(!any)list.innerHTML=`<div class="phint" style="padding:8px 0">最近 7 天都打满啦，没有需要补的日子 🎉</div>`;
+  if(used>=8){const w=document.createElement("div");w.className="phint";w.style.color="#c0392b";w.textContent="⚠️ 本月补卡次数已用完（每月限 8 次），下月 1 号可再补。";list.appendChild(w);}
+}
+function openPatchDate(dt){
+  if(patchMonthUsed()>=8){toast("⚠️ 本月补卡次数已用完");return;}
+  patchDate=dt;
+  document.getElementById("patchStage1").style.display="none";
+  document.getElementById("patchStage2").style.display="";
+  document.getElementById("patchDateTitle").textContent=dt+" · 勾选要补的任务";
+  const rec=S.dailyDone[dt]||{};
+  const box=document.getElementById("patchChks");box.innerHTML="";
+  QUESTS.forEach(q=>{
+    const done=!!rec[q.id];
+    const lab=document.createElement("label");lab.className="pchk";
+    if(done){lab.innerHTML=`<input type="checkbox" disabled> ${q.name} <span class="pc-done">已打 ✅</span>`;}
+    else{lab.innerHTML=`<input type="checkbox" checked> ${q.name} <span style="margin-left:auto;color:var(--muted);font-weight:600">+${q.xp} XP / +${q.coin}🪙</span>`;const cb=lab.querySelector("input");cb.dataset.qid=q.id;}
+    box.appendChild(lab);
+  });
+}
+function confirmPatch(){
+  if(!patchDate)return;
+  if(patchMonthUsed()>=8){toast("⚠️ 本月补卡次数已用完");return;}
+  const chks=document.querySelectorAll("#patchChks input[type=checkbox]:not([disabled])");
+  let n=0,gainXp=0,gainCoin=0;
+  chks.forEach(cb=>{
+    if(cb.checked){const q=QUESTS.find(x=>x.id===cb.dataset.qid);if(q){completeOnDate(q,patchDate);n++;gainXp+=q.xp;gainCoin+=q.coin;}}
+  });
+  if(n===0){toast("没勾选要补的任务哦");return;}
+  const m=monthStr();S.monthPatch[m]=(S.monthPatch[m]||0)+1;
+  recomputeStreak();save();
+  document.getElementById("patchBox").classList.add("hidden");
+  toast("📅 已补 "+patchDate+" 的 "+n+" 个任务！+"+gainXp+" XP / +"+gainCoin+"🪙");
+  renderAll();
+}
+document.getElementById("patchBtn").onclick=openPatch;
+document.getElementById("patchBack").onclick=()=>{document.getElementById("patchStage1").style.display="";document.getElementById("patchStage2").style.display="none";patchDate=null;};
+document.getElementById("patchCancel").onclick=()=>{document.getElementById("patchBox").classList.add("hidden");patchDate=null;};
+document.getElementById("patchOk").onclick=confirmPatch;
+
+/* nav */
+document.querySelectorAll("#nav button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#nav button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");document.getElementById("v-"+b.dataset.v).classList.add("on");
+  };
+});
+
+function renderAll(){renderRank();renderDaily();renderWeekly();renderBadges();renderShop();renderSetup();renderEnglish();renderChat();renderPrint();renderStats();}
+
+/* printable weekly check-in */
+function renderPrint(){
+  const t=document.getElementById("ckTable");if(!t)return;
+  let h="<tr><th>星期</th><th>日期</th><th>📖 中文20分</th><th>🔤 英文1本</th><th>🗣️ 讲给爸妈</th><th>贴纸★</th></tr>";
+  ["周一","周二","周三","周四","周五","周六","周日"].forEach(d=>{
+    h+=`<tr><td class="day">${d}</td><td class="box"></td><td class="box"></td><td class="box"></td><td class="box"></td><td class="box" style="font-size:24px"></td></tr>`;
+  });
+  h+=`<tr><td colspan="6" style="text-align:left;font-weight:700">📌 周末Boss：去图书馆借 1 本 + 读一大半 → 家长签名/盖章：____________ ｜ 本周连续天数：____ 天 ｜ 兑换奖励：____________</td></tr>`;
+  t.innerHTML=h;
+}
+
+/* english route */
+const EN_LADDER=[
+  {lv:1,name:"起步·拼读自信",books:"丽声我的第一套自然拼读故事书 · 苍蝇小子 Fly Guy · 安妮花",tip:"听2遍+指读1遍，先把「我能读英文」的感觉建立起来"},
+  {lv:2,name:"桥梁·短章节",books:"Nate the Great · Frog and Toad · Henry and Mudge · Owl Diaries",tip:"每本听2遍+读1遍；句子短、字大，最不劝退"},
+  {lv:3,name:"兴趣爆发·图文",books:"Dog Man(漫画,男生爱) · Geronimo Stilton · 神奇校车(太空!) · Tom Gates",tip:"挑他最有兴趣的先读；漫画/图画多=门槛低"},
+  {lv:4,name:"章节小说",books:"Diary of a Wimpy Kid · Roald Dahl",tip:"词汇更丰富，放慢节奏，听的比例可多一点"},
+];
+function renderEnglish(){
+  const lib=document.getElementById("enLib");
+  lib.textContent=S.readers?("已记录分级读物："+S.readers):"还没填家里的分级读物，去「⚙️ 我的书库」填一下。";
+  const w=document.getElementById("enLadder");w.innerHTML="";
+  EN_LADDER.forEach(r=>{
+    const d=document.createElement("div");
+    d.className="erow"+(r.lv===S.enLevel?" current":"");
+    d.style.borderLeftColor = r.lv===S.enLevel?"var(--gold)":"var(--cyan)";
+    d.innerHTML=`<span class="lv">Lv${r.lv}</span><b>${r.name}</b><div style="margin-top:4px">${r.books}</div><span class="tip">${r.tip}</span>`;
+    w.appendChild(d);
+  });
+  document.getElementById("enStat").innerHTML=
+    `当前级别：<b style="color:var(--gold)">第 ${S.enLevel} 级 · ${EN_LADDER[S.enLevel-1]?EN_LADDER[S.enLevel-1].name:""}</b> ｜ 累计读英文分级：<b>${S.en}</b> 本<br>连续 5 本都顺畅就点「升一级」。`;
+}
+document.getElementById("enUp").onclick=()=>{S.enLevel+=1;toast("升级到第 "+S.enLevel+" 级！🎉");save();renderEnglish();};
+
+/* chat topics */
+const TOPICS=[
+  {h:"🎬 情节类",qs:["最带劲/最离谱的是哪段？","看到哪最想往下翻？","结尾你猜到了吗？"]},
+  {h:"🦸 人物类",qs:["你最像书里谁？为什么？","谁最搞笑/最讨厌？","如果是你，会怎么选？"]},
+  {h:"🔮 如果类",qs:["要是你进到书里会怎样？","给主角支个招呗？","换结局你会怎么写？"]},
+  {h:"🌟 连接自己",qs:["这让你想起生活里啥事？","书里哪句话想记下来？","下次借书还想看这种不？"]},
+];
+function renderChat(){
+  const w=document.getElementById("topicWall");w.innerHTML="";
+  TOPICS.forEach(t=>{
+    const d=document.createElement("div");d.className="topic";
+    d.innerHTML=`<div class="h">${t.h}</div><ul>${t.qs.map(q=>"<li>"+q+"</li>").join("")}</ul>`;
+    w.appendChild(d);
+  });
+  const w2=document.getElementById("topicWall2");
+  if(w2){w2.innerHTML="";TOPICS2.forEach(t=>{
+    const d=document.createElement("div");d.className="topic";
+    d.innerHTML=`<div class="h">${t.h}</div><ul>${t.qs.map(q=>"<li>"+q+"</li>").join("")}</ul>`;
+    w2.appendChild(d);
+  });}
+  const cl=document.getElementById("chatLib");
+  cl.textContent=S.interest?("小杨兴趣："+S.interest+" —— 去图书馆就照这些主题找书，聊的时候也往上面靠，他更有话讲。"):"还没填兴趣主题，去「⚙️ 我的书库」填一下（恐龙/太空/足球…），我好帮你锁定图书馆借书方向。";
+}
+
+const TOPICS2=[
+  {h:"🚀 太空 / 武器",qs:["书里这个飞船/武器要是真造出来会怎样？","现实里真有这种装备吗？","你最想要哪个黑科技？"]},
+  {h:"🏯 历史穿越",qs:["甲骨文学校里你最想穿越到哪个朝代？","带现在的东西回去会怎样？","古人哪点比现代人厉害？"]},
+  {h:"🌍 漫游世界",qs:["书里哪个地方你最想去？","那和咱们这儿有啥不一样？","要是你当导游咋介绍？"]},
+];
+// weekly auto-reset check
+if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;save();}
+
+// load from shared save-link (phone <-> computer sync)
+if(location.hash.startsWith("#save=")){
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(6)))));
+    if(typeof data==="object"&&data&&confirm("检测到存档链接，是否用这份进度覆盖当前设备上的进度？")){
+      Object.assign(S,data);save();
+      var bh=document.getElementById("backupHint");if(bh)bh.textContent="✅ 已从存档链接同步进度。";
+      toast("已从存档链接同步 ✔");
+    }
+    // 清除 hash，避免刷新重复弹窗（file:// 下可能有限制，容错）
+    try{ history.replaceState(null,"",location.pathname+(location.search||"")); }catch(e){}
+  }catch(e){ toast("存档链接不完整，同步失败。请用「导出存档文件」或「复制存档码→粘贴同步」"); }
+}
+
+renderAll();
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',__readingInit);}else{__readingInit();}
+</script>
+  <!-- 口令输入弹窗已移除 -->
+</body>
+</html>
