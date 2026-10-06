@@ -176,6 +176,9 @@
   .stattbl th,.stattbl td{border:1px solid var(--line);padding:8px 6px;text-align:center}
   .stattbl th{background:var(--panel2);color:var(--cyan)}
   .stattbl td.day{font-weight:700;text-align:left;color:var(--txt)}
+  .collapsible{cursor:pointer}
+  .collapsible .fold{margin-left:auto;font-size:12px;color:var(--cyan);font-weight:700}
+  .collapsible .cnt{font-size:12px;color:var(--sub);font-weight:600;margin-left:6px}
 
   @media print{
     body{background:#fff;color:#111}
@@ -340,6 +343,22 @@
       <div class="hint">💡 图书馆就在附近，把"借书"变成像塞尔达里点亮瞭望塔一样的小探险。不知道看啥？让管理员推荐"男生爱看"那一排。</div>
     </div>
     <div class="card">
+      <h2><span class="ic">📚</span> 大阅读（周末 / 节假日专属）</h2>
+      <div class="quest" id="bigReadQuest">
+        <button class="badge-do" id="bigReadBtn">⬜</button>
+        <div class="qi"><b>📚 大阅读：一口气读完半本书（不限时）</b>
+          <small>周末或节假日，把一本书读一大半以上，攒出阅读量</small></div>
+        <div class="reward">+30 XP / +3 🪙</div>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        🏖️ 今天是假期 / 节假日吗？
+        <label style="display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--cyan);font-weight:700">
+          <input type="checkbox" id="holidayChk"> 是（周末和假期都能打「大阅读」）
+        </label>
+        <div style="margin-top:4px">大阅读是 <b>周末 / 节假日</b> 的专属加分：一口气读完半本以上就能打，平时上学日不打（除非勾选上面的假期）。每周可打 1 次。</div>
+      </div>
+    </div>
+    <div class="card">
       <h2><span class="ic">⚔️</span> 终极Boss：解放大陆</h2>
       <div class="quest" id="finalBossQuest">
         <button class="badge-do" id="finalBossBtn">🔒</button>
@@ -369,6 +388,7 @@
       <h2><span class="ic">🛒</span> 奖励商店（和爸妈提前说好哪些能换）</h2>
       <div class="shop" id="shop"></div>
       <div class="hint">⚠️ 奖励尽量"体验型"：点餐、游戏时间、挑书、户外活动，比直接给钱更让人记得住。</div>
+      <div id="redeemLog"></div>
     </div>
   </section>
 
@@ -411,12 +431,12 @@
       </div>
     </div>
     <div class="card">
-      <h2><span class="ic">📅</span> 按日期汇总（最近在前）</h2>
-      <table class="stattbl" id="statTable"></table>
+      <h2 class="collapsible" id="statDayH"><span class="ic">📅</span> 按日期汇总<span class="cnt" id="statDayCnt"></span><span class="fold">▸ 展开</span></h2>
+      <div id="statDayBody" style="display:none"></div>
     </div>
     <div class="card">
-      <h2><span class="ic">🗓️</span> 按周汇总</h2>
-      <table class="stattbl" id="statWeek"></table>
+      <h2 class="collapsible" id="statWeekH"><span class="ic">🗓️</span> 按周汇总<span class="cnt" id="statWeekCnt"></span><span class="fold">▸ 展开</span></h2>
+      <div id="statWeekBody" style="display:none"></div>
     </div>
   </section>
 
@@ -689,12 +709,17 @@ function load(){
       r.lock=false;r.lockPwd=""; /* 防误触锁定已移除：强制清掉旧存档的锁定状态，避免按钮永久锁死 */
       if(!r.monthClaim)r.monthClaim={};
       if(!r.monthPatch)r.monthPatch={};
+      if(!r.redeemLog)r.redeemLog=[];
+      if(typeof r.bigReadDone!=="boolean")r.bigReadDone=false;
+      if(typeof r.holidayOn!=="boolean")r.holidayOn=false;
+      if(typeof r.holidayDate!=="string")r.holidayDate=null;
+      delete r.claimed; /* 旧版一次性兑换标记已废弃，避免误判为已兑换 */
       return r;
     }
   }catch(e){}
   return {xp:0,coins:0,streak:0,lastDate:null,lastWeek:null,
     cn:0,en:0,tell:0,books:0,boss:0,enLevel:1,
-    dailyDone:{},bossDone:false,claimed:{},lighthouse:0,finalBoss:false,monthClaim:{},monthPatch:{},
+    dailyDone:{},bossDone:false,redeemLog:[],bigReadDone:false,holidayOn:false,holidayDate:null,lighthouse:0,finalBoss:false,monthClaim:{},monthPatch:{},
     interest:"军事武器, 太空, 《小灵通漫游世界》, 《甲骨文学校》",
     readers:"丽声自然拼读, 苍蝇小子Fly Guy, 安妮花, 神奇校车, Nate the Great, Dog Man, Henry and Mudge, Owl Diaries, Frog and Toad, Geronimo Stilton, Tom Gates, Diary of a Wimpy Kid, Roald Dahl, 英文电影",
     rewards:[
@@ -784,13 +809,16 @@ function toggleQuest(q,wasDone){
 function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
 
 /* weekly boss */
+function isWeekend(){const d=new Date();const w=d.getDay();return w===0||w===6;}
 function renderWeekly(){
+  // 假期标记按天自动失效
+  if(S.holidayDate!==today()){S.holidayOn=false;S.holidayDate=null;}
   const b=document.getElementById("bossBtn");
   b.textContent=S.bossDone?"✅":"⬜";
   document.getElementById("bossQuest").classList.toggle("done",S.bossDone);
   const lh=S.lighthouse||0;
   document.getElementById("weeklyStat").innerHTML=
-    `🗼 已点亮灯塔：<b style="color:var(--gold)">${lh} / 12</b> ｜ 周末Boss 击败：${S.boss} 次 ｜ 借书/读完较厚书：${S.books} 本 ｜ 当前连续🔥 ${S.streak} 天`+
+    `🗼 已点亮灯塔：<b style="color:var(--gold)">${lh} / 12</b> ｜ 周末Boss 击败：${S.boss} 次 ｜ 借书/读完较厚书：${S.books} 本 ｜ 当前连续🔥 ${S.streak} 天 ｜ 📚 大阅读：${S.bigReadDone?"✅ 已打":"未打"}`+
     (S.finalBoss?`<br>🏅 <b style="color:var(--gold)">终极Boss 已击败 · 大陆已解放！</b>`:"");
   const fb=document.getElementById("finalBossBtn");
   fb.textContent=S.finalBoss?"✅":(lh>=12?"⚔️":"🔒");
@@ -798,7 +826,37 @@ function renderWeekly(){
   document.getElementById("finalBossSub").textContent= lh>=12
     ? (S.finalBoss?"已解放！可再次点亮守护大陆":"已集齐 12 灯塔，点击挑战终极Boss！")
     : `需先点亮 12 座灯塔（已点亮 ${lh} / 12）`;
+  // 大阅读
+  const br=document.getElementById("bigReadBtn");
+  if(br){br.textContent=S.bigReadDone?"✅":"⬜";}
+  const bq=document.getElementById("bigReadQuest");
+  if(bq)bq.classList.toggle("done",S.bigReadDone);
+  const hc=document.getElementById("holidayChk");
+  if(hc)hc.checked=!!S.holidayOn;
 }
+document.getElementById("bigReadBtn").onclick=()=>{
+  const canBig=isWeekend()||S.holidayOn;
+  const willDo=!S.bigReadDone;
+  const msg=willDo
+    ? (canBig?"确定完成「大阅读：读完半本书」吗？完成后 +30 XP、+3🪙":"大阅读是周末/节假日专属～今天不是周末，请先勾选上面的「今天是假期/节假日」")
+    : "确定取消「大阅读」吗？会收回 30 XP、3🪙";
+  if(willDo&&!canBig){toast(msg);return;}
+  showConfirm(msg,doBigReadToggle);
+};
+function doBigReadToggle(){
+  const canBig=isWeekend()||S.holidayOn;
+  if(!S.bigReadDone){
+    if(!canBig){toast("📚 大阅读是周末/节假日专属～今天不是周末的话，先勾选「今天是假期/节假日」");return;}
+    S.bigReadDone=true;S.xp+=30;S.coins+=3;toast("📚 大阅读完成！+30 XP");
+  }else{S.bigReadDone=false;S.xp=Math.max(0,S.xp-30);S.coins=Math.max(0,S.coins-3);}
+  if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bigReadDone=false;}
+  save();renderAll();
+}
+document.getElementById("holidayChk").onchange=e=>{
+  S.holidayOn=!!e.target.checked;
+  S.holidayDate=S.holidayOn?today():null;
+  save();renderWeekly();
+};
 document.getElementById("bossBtn").onclick=()=>{
   /* 防误触锁定已移除，仅保留二次确认弹窗 */
   const willDo=!S.bossDone;
@@ -842,27 +900,48 @@ function renderShop(){
   const items=(S.rewards&&S.rewards.length)?S.rewards:DEFAULT_REWARDS;
   const m=monthStr();
   items.forEach((it,idx)=>{
-    const claimed=S.claimed[idx];
-    let remaining=null;
-    if(it.monthlyLimit){const mc=S.monthClaim[it.t]||{month:m,n:0};if(mc.month!==m)mc.n=0;remaining=it.monthlyLimit-mc.n;}
+    // 归一化本月兑换计数（跨月自动清零）
+    let mc=S.monthClaim[it.t];
+    if(!mc){mc={month:m,n:0};S.monthClaim[it.t]=mc;}
+    else if(mc.month!==m){mc.month=m;mc.n=0;}
+    const remaining=it.monthlyLimit?Math.max(0,it.monthlyLimit-mc.n):-1;
     const d=document.createElement("div");d.className="item";
-    const label=claimed?"已兑换":(it.monthlyLimit?("兑换（本月剩 "+remaining+" 次）"):"兑换");
+    const label=it.monthlyLimit?("兑换（本月剩 "+remaining+" 次）"):"兑换";
     d.innerHTML=`<div class="e">${it.e||"🎁"}</div><div class="t">${it.t}</div>
       <div class="c">${it.c} 🪙${it.monthlyLimit?(" ｜ 每月限 "+it.monthlyLimit+" 次"):""}</div>
-      <button class="btn ${claimed?'ghost':''}">${label}</button>`;
+      <button class="btn">${label}</button>`;
     const btn=d.querySelector("button");
-    btn.disabled=claimed||S.coins<it.c||(it.monthlyLimit&&remaining<=0);
+    btn.disabled=S.coins<it.c||(it.monthlyLimit&&remaining<=0);
     btn.onclick=()=>{
       /* 防误触锁定已移除，仅保留二次确认弹窗 */
       if(S.coins<it.c){toast("金币不够，再攒攒～");return;}
-      if(it.monthlyLimit){const mc=S.monthClaim[it.t]||{month:m,n:0};if(mc.month!==m){mc.month=m;mc.n=0;}
-        if(mc.n>=it.monthlyLimit){toast("本月「"+it.t+"」已兑换 "+it.monthlyLimit+" 次，下月再来～");return;}
-        mc.n++;S.monthClaim[it.t]=mc;}
-      S.coins-=it.c;S.claimed[idx]=true;toast("兑换成功："+it.t);
+      let mcc=S.monthClaim[it.t];
+      if(!mcc){mcc={month:m,n:0};S.monthClaim[it.t]=mcc;}
+      else if(mcc.month!==m){mcc.month=m;mcc.n=0;}
+      if(it.monthlyLimit&&mcc.n>=it.monthlyLimit){toast("本月「"+it.t+"」已兑换 "+it.monthlyLimit+" 次，下月再来～");return;}
+      if(it.monthlyLimit)mcc.n++;
+      S.coins-=it.c;
+      S.redeemLog.unshift({t:it.t,c:it.c,d:today()});
+      if(S.redeemLog.length>200)S.redeemLog.length=200;
+      toast("兑换成功："+it.t);
       save();renderAll();
     };
     shop.appendChild(d);
   });
+  // 兑换记录
+  const logBox=document.getElementById("redeemLog");
+  if(logBox){
+    if(!S.redeemLog.length){logBox.innerHTML='<div class="hint" style="margin-top:14px">还没有兑换记录，攒够金币就能来换啦～</div>';}
+    else{
+      let h='<div class="hint" style="margin-top:14px;font-weight:800;color:var(--gold-txt)">🧾 兑换记录（最近在前，共 '+S.redeemLog.length+' 条）</div>'
+        +'<table class="stattbl" style="margin-top:6px"><tr><th>日期</th><th>兑换内容</th><th>花费</th></tr>';
+      S.redeemLog.slice(0,30).forEach(r=>{
+        h+='<tr><td class="day">'+r.d+'</td><td>'+r.t+'</td><td>'+r.c+'🪙</td></tr>';
+      });
+      h+='</table>';
+      logBox.innerHTML=h;
+    }
+  }
 }
 
 /* stats: auto-aggregated on every save, grouped by date & week */
@@ -892,7 +971,9 @@ function renderStats(){
     const done=[c,e,t].filter(Boolean).length;
     dh+=`<tr><td class="day">${dt}</td><td>${c?'✅':'—'}</td><td>${e?'✅':'—'}</td><td>${t?'✅':'—'}</td><td><b>${done}</b>/3</td></tr>`;
   });
-  document.getElementById("statTable").innerHTML=dh;
+  document.getElementById("statDayBody").innerHTML='<table class="stattbl">'+dh+'</table>';
+  const dayCnt=document.getElementById("statDayCnt");
+  if(dayCnt)dayCnt.textContent="（共 "+entries.length+" 天）";
   const weeks={};
   entries.forEach(dt=>{
     const ws=weekStart(dt);
@@ -905,7 +986,9 @@ function renderStats(){
   let wh="<tr><th>周（周一）</th><th>阅读天数</th><th>完成任务数</th></tr>";
   if(!wk.length)wh+="<tr><td colspan='3'>还没有按周的数据～</td></tr>";
   wk.forEach(w=>{wh+=`<tr><td class="day">${w}</td><td>${weeks[w].days}</td><td>${weeks[w].tasks}</td></tr>`;});
-  document.getElementById("statWeek").innerHTML=wh;
+  document.getElementById("statWeekBody").innerHTML='<table class="stattbl">'+wh+'</table>';
+  const wkCnt=document.getElementById("statWeekCnt");
+  if(wkCnt)wkCnt.textContent="（共 "+wk.length+" 周）";
 }
 
 /* setup */
@@ -1193,7 +1276,7 @@ const TOPICS2=[
   {h:"🌍 漫游世界",qs:["书里哪个地方你最想去？","那和咱们这儿有啥不一样？","要是你当导游咋介绍？"]},
 ];
 // weekly auto-reset check
-if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;save();}
+if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;S.bigReadDone=false;save();}
 
 // load from shared save-link (phone <-> computer sync)
 if(location.hash.startsWith("#save=")){
@@ -1210,6 +1293,20 @@ if(location.hash.startsWith("#save=")){
 }
 
 renderAll();
+
+/* 统计板块按日/按周折叠（默认收起，点标题展开/收起） */
+function setupFold(headId,bodyId){
+  const h=document.getElementById(headId),b=document.getElementById(bodyId);
+  if(!h||!b)return;
+  h.onclick=()=>{
+    const open=b.style.display!=="none";
+    b.style.display=open?"none":"";
+    const tag=h.querySelector(".fold");
+    if(tag)tag.textContent=open?"▸ 展开":"▾ 收起";
+  };
+}
+setupFold("statDayH","statDayBody");
+setupFold("statWeekH","statWeekBody");
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',__readingInit);}else{__readingInit();}
 </script>
