@@ -203,10 +203,14 @@
     nav button{min-width:0;font-size:13px;padding:12px 4px;border-width:2px}
     .card{padding:13px;margin-bottom:11px}
     .card h2{font-size:15px}
-    .quest{gap:10px;padding:11px}
+    .quest{gap:8px 10px;padding:11px;flex-wrap:wrap}
     .quest .badge-do{width:46px;height:46px;font-size:23px;border-width:3px}
-    .quest .qi b{font-size:16px}
-    .quest .reward{font-size:12px}
+    .quest .qi{flex:1;min-width:0}
+    .quest .qi b{font-size:15px;line-height:1.35}
+    .quest .qi small{font-size:11px;line-height:1.5;margin-top:3px}
+    .quest .reward{flex-basis:100%;white-space:normal;text-align:left;font-size:12px;line-height:1.5;margin-top:2px;padding:6px 9px;border-radius:9px;background:rgba(255,193,7,.13);color:var(--gold-txt)}
+    .hint{font-size:12px;line-height:1.75}
+    .hint label{display:flex !important;align-items:flex-start !important;gap:7px;width:100%;margin-top:6px;line-height:1.5}
     .btn{padding:13px 14px;font-size:15px;width:100%;text-align:center}
     .row{gap:8px}
     .row .btn{width:auto}
