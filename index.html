@@ -294,7 +294,7 @@
       <p class="note">
         1️⃣ 每天完成 <b>3 个今日任务</b>，就赚到经验值和金币。<br>
         2️⃣ 经验值攒够了就<b>升段位</b>，从「阅读学徒」一路打到「传说阅读王」。<br>
-        3️⃣ 每周去图书馆 <b>点亮 1 座灯塔</b>（借书读完），集齐 12 座就能挑战 <b>终极Boss</b>、拿「解放大陆勋章」。<br>
+        3️⃣ 周末 / 节假日做「🗼 深度阅读·点亮灯塔」：读完半本厚书（图书馆借的 <b>或</b> 家里的都算），集齐 12 座就能挑战 <b>终极Boss</b>、拿「解放大陆勋章」。<br>
         4️⃣ 金币存进 <b>奖励商店</b>，换你真正想要的东西（点餐、游戏时间、挑书……）。<br>
         5️⃣ 连续天数 🔥 不断就一直加成——<b>断一天会清零，所以要每天来一下哦</b>。
       </p>
@@ -332,18 +332,7 @@
   <!-- WEEKLY -->
   <section class="view" id="v-weekly">
     <div class="card">
-      <h2><span class="ic">🗼</span> 周末Boss：点亮灯塔，解锁地图</h2>
-      <p class="note">每周去一次图书馆，挑 <b>1 本自己想借的书</b>（任何类型都行），回家读完或读一大半，就 <b>点亮 1 座灯塔、解锁一块新地图</b>！集齐 12 座灯塔，就能挑战终极Boss，解放整片大陆。</p>
-      <div class="quest" id="bossQuest">
-        <button class="badge-do" id="bossBtn">⬜</button>
-        <div class="qi"><b>点亮灯塔：借书 + 读一大半</b>
-          <small>去图书馆挑 1 本，本周内读完或读 ≥60%</small></div>
-        <div class="reward">+50 XP / +5 🪙</div>
-      </div>
-      <div class="hint">💡 图书馆就在附近，把"借书"变成像塞尔达里点亮瞭望塔一样的小探险。不知道看啥？让管理员推荐"男生爱看"那一排。</div>
-    </div>
-    <div class="card">
-      <h2><span class="ic">📚</span> 阅读加分（两档）</h2>
+      <h2><span class="ic">📚</span> 阅读加分（中间档 + 深度·灯塔）</h2>
       <div class="quest" id="bigReadQuest">
         <button class="badge-do" id="bigReadBtn">⬜</button>
         <div class="qi"><b>📚 大阅读（中间档）：单次连续读 ≥45分钟 或 读完 ≥20页 / 1章节</b>
@@ -352,16 +341,21 @@
       </div>
       <div class="quest" id="deepReadQuest" style="margin-top:10px">
         <button class="badge-do" id="deepReadBtn">⬜</button>
-        <div class="qi"><b>📖 深度阅读：一口气读完半本书（≥全书一半 或 ≥80页）</b>
-          <small>周末 / 节假日专属，每周 1 次</small></div>
-        <div class="reward">+30 XP / +3 🪙</div>
+        <div class="qi"><b>🗼 深度阅读·点亮灯塔：读完半本厚书（≥全书一半 或 ≥80页）</b>
+          <small>周末 / 节假日专属，每周 1 次。图书馆借的 <b>或</b> 家里的都算；完成即点亮 1 座灯塔、解锁一块地图</small></div>
+        <div class="reward">+30 XP / +3 🪙 ｜ 🗼 灯塔 +1（图书馆借的书额外 +1🪙）</div>
       </div>
       <div class="hint" style="margin-top:10px">
         🏖️ 今天是假期 / 节假日吗？
         <label style="display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--cyan);font-weight:700">
-          <input type="checkbox" id="holidayChk"> 是（仅影响「深度阅读」能否在平日打）
+          <input type="checkbox" id="holidayChk"> 是（仅影响「深度阅读·点亮灯塔」能否在平日打）
         </label>
-        <div style="margin-top:4px">大阅读（中间档）平时周末都能打、每天限 1 次；深度阅读（半本书）限周末/节假日，每周 1 次。</div>
+        <div style="margin-top:4px">大阅读（中间档）平时周末都能打、每天限 1 次；深度阅读·点亮灯塔 限周末/节假日，每周 1 次。</div>
+        <div style="margin-top:6px">📚 这本书是图书馆借的吗？
+          <label style="display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--cyan);font-weight:700">
+            <input type="checkbox" id="libChk"> 是（额外 +1🪙 小鼓励，可常开）
+          </label>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -721,13 +715,15 @@ function load(){
       delete r.bigReadDone;
       if(typeof r.holidayOn!=="boolean")r.holidayOn=false;
       if(typeof r.holidayDate!=="string")r.holidayDate=null;
+      if(typeof r.libPref!=="boolean")r.libPref=false;
+      if(typeof r.deepLib!=="boolean")r.deepLib=false;
       delete r.claimed; /* 旧版一次性兑换标记已废弃，避免误判为已兑换 */
       return r;
     }
   }catch(e){}
   return {xp:0,coins:0,streak:0,lastDate:null,lastWeek:null,
     cn:0,en:0,tell:0,books:0,boss:0,enLevel:1,
-    dailyDone:{},bossDone:false,redeemLog:[],bigReadLog:[],deepReadDone:false,holidayOn:false,holidayDate:null,lighthouse:0,finalBoss:false,monthClaim:{},monthPatch:{},
+    dailyDone:{},bossDone:false,redeemLog:[],bigReadLog:[],deepReadDone:false,holidayOn:false,holidayDate:null,libPref:false,deepLib:false,lighthouse:0,finalBoss:false,monthClaim:{},monthPatch:{},
     interest:"军事武器, 太空, 《小灵通漫游世界》, 《甲骨文学校》",
     readers:"丽声自然拼读, 苍蝇小子Fly Guy, 安妮花, 神奇校车, Nate the Great, Dog Man, Henry and Mudge, Owl Diaries, Frog and Toad, Geronimo Stilton, Tom Gates, Diary of a Wimpy Kid, Roald Dahl, 英文电影",
     rewards:[
@@ -821,12 +817,10 @@ function isWeekend(){const d=new Date();const w=d.getDay();return w===0||w===6;}
 function renderWeekly(){
   // 假期标记按天自动失效
   if(S.holidayDate!==today()){S.holidayOn=false;S.holidayDate=null;}
-  const b=document.getElementById("bossBtn");
-  b.textContent=S.bossDone?"✅":"⬜";
-  document.getElementById("bossQuest").classList.toggle("done",S.bossDone);
+  /* 灯塔改为由「深度阅读·点亮灯塔」项点亮，不再有独立按钮 */
   const lh=S.lighthouse||0;
   document.getElementById("weeklyStat").innerHTML=
-    `🗼 已点亮灯塔：<b style="color:var(--gold)">${lh} / 12</b> ｜ 周末Boss 击败：${S.boss} 次 ｜ 借书/读完较厚书：${S.books} 本 ｜ 当前连续🔥 ${S.streak} 天 ｜ 📚 大阅读(中间档) ${S.bigReadLog.length} 次 ｜ 📖 深度阅读(半本) ${S.deepReadDone?"✅ 已打":"未打"}`+
+    `🗼 已点亮灯塔：<b style="color:var(--gold)">${lh} / 12</b> ｜ 当前连续🔥 ${S.streak} 天 ｜ 📚 大阅读(中间档) ${S.bigReadLog.length} 次 ｜ 🗼 深度阅读·点亮灯塔 ${S.deepReadDone?"✅ 已打":"未打"}`+
     (S.finalBoss?`<br>🏅 <b style="color:var(--gold)">终极Boss 已击败 · 大陆已解放！</b>`:"");
   const fb=document.getElementById("finalBossBtn");
   fb.textContent=S.finalBoss?"✅":(lh>=12?"⚔️":"🔒");
@@ -846,6 +840,8 @@ function renderWeekly(){
   if(dq)dq.classList.toggle("done",S.deepReadDone);
   const hc=document.getElementById("holidayChk");
   if(hc)hc.checked=!!S.holidayOn;
+  const lc=document.getElementById("libChk");
+  if(lc)lc.checked=!!S.libPref;
 }
 document.getElementById("bigReadBtn").onclick=()=>{
   if(S.bigReadLog.includes(today())){toast("今天的大阅读已经记过啦～明天再战");return;}
@@ -858,18 +854,23 @@ function doBigRead(){
 document.getElementById("deepReadBtn").onclick=()=>{
   const canDeep=isWeekend()||S.holidayOn;
   const willDo=!S.deepReadDone;
+  const lib=!!S.libPref;
   const msg=willDo
-    ? (canDeep?"确定完成「深度阅读：读完半本书（≥全书一半或≥80页）」吗？完成后 +30 XP、+3🪙":"深度阅读是周末/节假日专属～今天不是周末的话，先勾选「今天是假期/节假日」")
-    : "确定取消「深度阅读」吗？会收回 30 XP、3🪙";
+    ? (canDeep?`确定完成「🗼 深度阅读·点亮灯塔：读完半本厚书（≥全书一半 或 ≥80页）」吗？完成后 +30 XP、+3🪙、灯塔 +1${lib?"（图书馆借书额外 +1🪙）":""}`:`深度阅读·点亮灯塔是周末/节假日专属～今天不是周末的话，先勾选「今天是假期/节假日」`)
+    : `确定取消「深度阅读·点亮灯塔」吗？会收回 30 XP、${(S.deepLib?4:3)}🪙、灯塔 -1`;
   if(willDo&&!canDeep){toast(msg);return;}
   showConfirm(msg,doDeepReadToggle);
 };
 function doDeepReadToggle(){
   const canDeep=isWeekend()||S.holidayOn;
   if(!S.deepReadDone){
-    if(!canDeep){toast("📖 深度阅读是周末/节假日专属～先勾选「今天是假期/节假日」");return;}
-    S.deepReadDone=true;S.xp+=30;S.coins+=3;toast("📖 深度阅读完成！+30 XP");
-  }else{S.deepReadDone=false;S.xp=Math.max(0,S.xp-30);S.coins=Math.max(0,S.coins-3);}
+    if(!canDeep){toast("🗼 深度阅读·点亮灯塔是周末/节假日专属～先勾选「今天是假期/节假日」");return;}
+    const lib=!!S.libPref;
+    S.deepReadDone=true;S.deepLib=lib;S.xp+=30;S.coins+=3+(lib?1:0);S.books+=1;S.lighthouse=(S.lighthouse||0)+1;
+    toast("🗼 深度阅读·点亮灯塔！+30 XP"+(lib?"（图书馆借书 +1🪙）":""));
+  }else{
+    S.deepReadDone=false;S.xp=Math.max(0,S.xp-30);S.coins=Math.max(0,S.coins-(S.deepLib?4:3));S.books=Math.max(0,S.books-1);S.lighthouse=Math.max(0,(S.lighthouse||0)-1);S.deepLib=false;
+  }
   if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.deepReadDone=false;}
   save();renderAll();
 }
@@ -878,18 +879,9 @@ document.getElementById("holidayChk").onchange=e=>{
   S.holidayDate=S.holidayOn?today():null;
   save();renderWeekly();
 };
-document.getElementById("bossBtn").onclick=()=>{
-  /* 防误触锁定已移除，仅保留二次确认弹窗 */
-  const willDo=!S.bossDone;
-  const msg=willDo?"确定点亮本周灯塔（周末Boss）吗？点亮后 +50 XP、灯塔 +1":"确定要熄灭这座灯塔吗？会收回 50 XP、灯塔 -1";
-  showConfirm(msg,doBossToggle);
+document.getElementById("libChk").onchange=e=>{
+  S.libPref=!!e.target.checked;save();
 };
-function doBossToggle(){
-  if(!S.bossDone){S.bossDone=true;S.boss+=1;S.xp+=50;S.coins+=5;S.books+=1;S.lighthouse=(S.lighthouse||0)+1;
-    toast("🗼 灯塔点亮！+50 XP");}else{S.bossDone=false;S.boss=Math.max(0,S.boss-1);S.xp=Math.max(0,S.xp-50);S.coins=Math.max(0,S.coins-5);S.books=Math.max(0,S.books-1);S.lighthouse=Math.max(0,(S.lighthouse||0)-1);}
-  if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;}
-  save();renderAll();
-}
 document.getElementById("finalBossBtn").onclick=()=>{
   /* 防误触锁定已移除，仅保留二次确认弹窗 */
   if(S.finalBoss){
@@ -1297,7 +1289,7 @@ const TOPICS2=[
   {h:"🌍 漫游世界",qs:["书里哪个地方你最想去？","那和咱们这儿有啥不一样？","要是你当导游咋介绍？"]},
 ];
 // weekly auto-reset check
-if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.bossDone=false;S.deepReadDone=false;save();}
+if(S.lastWeek!==weekKey()){S.lastWeek=weekKey();S.deepReadDone=false;save();}
 
 // load from shared save-link (phone <-> computer sync)
 if(location.hash.startsWith("#save=")){
